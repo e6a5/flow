@@ -6,19 +6,35 @@ Flow is a minimalist command-line tool designed to help you focus on single-task
 
 ## ⚡ Quick Start
 
-### Install (one-liner)
+### 1. Install
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/e6a5/flow/main/install.sh | bash
 ```
 
-### Start a Session
+### 2. Run a Full Session Cycle
 
 ```bash
-flow start --tag "writing docs"
+# Start a session to focus on a task
+flow start --tag "Drafting a proposal"
+
+# Check your current status
+flow status
+
+# Take a short break
+flow pause
+
+# Resume your work
+flow resume
+
+# End the session when you're done
+flow end
+
+# Review your completed sessions
+flow log
 ```
 
-### Enable Shell Integration (Optional)
+### 3. Enable Shell Integration (Optional)
 
 For ambient awareness in your shell prompt:
 
