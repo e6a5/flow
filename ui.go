@@ -21,6 +21,7 @@ Protect your attention. Enter deep work.
 USAGE:
   flow start [--tag "description"]   Start a deep work session
   flow status                        Check current session
+  flow status [--raw]                Show only the session tag (for scripting)
   flow pause                         Pause current session
   flow resume                        Resume paused session
   flow end                          End current session

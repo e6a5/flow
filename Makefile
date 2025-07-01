@@ -10,7 +10,7 @@ LDFLAGS = -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.
 
 # Build the flow binary
 build:
-	go build $(LDFLAGS) -o flow main.go
+	go build $(LDFLAGS) -o flow ./...
 
 # Install flow to $GOPATH/bin
 install:
@@ -34,14 +34,14 @@ fmt:
 
 # Development: run with example
 dev:
-	go run $(LDFLAGS) main.go 1 --tag "dev test"
+	go run $(LDFLAGS) ./... 1 --tag "dev test"
 
 # Build for multiple platforms
 release:
 	mkdir -p dist
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-linux-amd64 main.go
-	GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o dist/flow-linux-arm64 main.go
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-darwin-amd64 main.go
-	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o dist/flow-darwin-arm64 main.go
-	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-windows-amd64.exe main.go
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-linux-amd64 ./...
+	GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o dist/flow-linux-arm64 ./...
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-darwin-amd64 ./...
+	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o dist/flow-darwin-arm64 ./...
+	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-windows-amd64.exe ./...
 	@echo "Built binaries for version $(VERSION)" 

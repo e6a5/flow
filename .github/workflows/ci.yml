@@ -58,7 +58,7 @@ jobs:
 
     - name: Build binary
       run: |
-        go build -o flow main.go
+        go build -o flow ./...
         
     - name: Test binary
       run: |

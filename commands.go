@@ -54,9 +54,23 @@ func handleStart() {
 	fmt.Printf("%s   Let distractions pass%s\n", Dim, Reset)
 	fmt.Printf("\nSession active in background.\n")
 	fmt.Printf("%sUse 'flow status' to check, 'flow end' to complete.%s\n\n", Gray, Reset)
+
+	runHook("on_start", session.Tag)
 }
 
 func handleStatus() {
+	// Support --raw flag for script-friendly output
+	if len(os.Args) > 2 && os.Args[2] == "--raw" {
+		if sessionExists() {
+			session, err := loadSession()
+			if err == nil {
+				fmt.Print(session.Tag)
+			}
+		}
+		// Exit cleanly after raw output
+		return
+	}
+
 	if !sessionExists() {
 		fmt.Printf("🌊 No active session.\n")
 		fmt.Printf("Use 'flow start' to begin deep work.\n")
@@ -108,6 +122,7 @@ func handlePause() {
 	duration := time.Since(session.StartTime) - session.TotalPaused
 	fmt.Printf("⏸️  Paused: %s\n", session.Tag)
 	fmt.Printf("Worked for %s. Use 'flow resume' when ready.\n", formatDuration(duration))
+	runHook("on_pause", session.Tag)
 }
 
 func handleResume() {
@@ -139,6 +154,7 @@ func handleResume() {
 
 	fmt.Printf("🌊 Resumed: %s\n", session.Tag)
 	fmt.Printf("Continue your deep work.\n")
+	runHook("on_resume", session.Tag)
 }
 
 func handleEnd() {
@@ -172,4 +188,5 @@ func handleEnd() {
 	fmt.Printf("✨ Session complete: %s\n", session.Tag)
 	fmt.Printf("Total focus time: %s\n", formatDuration(totalDuration))
 	fmt.Printf("\n%sCarry this focus forward.%s\n", Dim, Reset)
+	runHook("on_end", session.Tag)
 }

@@ -117,6 +117,20 @@ Total focus time: 2h 15m
 Carry this focus forward.
 ```
 
+## Shell Prompt Integration
+
+`flow` is designed to integrate seamlessly with your shell for ambient awareness of your current focus. By adding it to your shell prompt, you can see what you're working on without running a command.
+
+The `flow status --raw` command outputs only the tag of the active session, which can be used in your shell's configuration file (e.g., `.zshrc`, `.bashrc`).
+
+**Example for Zsh:**
+```zsh
+# Add this to your ~/.zshrc
+PROMPT='$(flow status --raw) %~ %# '
+```
+This would make your prompt look like this when a session is active:
+`writing documentation ~ %`
+
 ## Shell Completion
 
 To make using `flow` even easier, you can enable shell completion. The `install.sh` script will provide instructions, but you can also generate the script manually.
@@ -138,6 +152,35 @@ The session file is stored locally on your machine. The path is determined in th
 3.  `~/.local/share/flow/session`: The fallback XDG path.
 4.  `~/.flow-session`: For backward compatibility.
 
+## Automation Hooks
+
+`flow` can execute scripts based on session events, allowing you to create powerful, personalized workflows. To use this feature, create executable scripts in `~/.config/flow/hooks/`.
+
+The following events are supported:
+
+*   `on_start`: Runs after a new session starts.
+*   `on_pause`: Runs after a session is paused.
+*   `on_resume`: Runs after a session is resumed.
+*   `on_end`: Runs after a session ends.
+
+The session tag is passed as the first argument to your script.
+
+### Example: Creating a Log with Hooks
+
+You can create a simple log of your completed sessions by creating an executable script at `~/.config/flow/hooks/on_end`:
+
+```bash
+#!/bin/sh
+# File: ~/.config/flow/hooks/on_end
+
+SESSION_TAG=$1
+LOG_FILE=~/.flow_history.log
+
+echo "$(date -I'seconds'),$SESSION_TAG" >> "$LOG_FILE"
+```
+
+This script will automatically append the date and session tag to a log file every time you end a `flow` session.
+
 ## Design Principles
 
 -   🧘 **Mindful**: A ritualistic approach, not a productivity hack.
@@ -158,4 +201,4 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ---
 
-*One thing at a time. Runs offline. Powered by presence.* 
+*One thing at a time. Runs offline. Powered by presence.*

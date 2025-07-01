@@ -2,6 +2,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -113,5 +114,92 @@ func TestE2EWorkflow(t *testing.T) {
 	}
 	if !strings.Contains(stdout, "No active session") {
 		t.Errorf("Expected status output to contain 'No active session', got:\n%s", stdout)
+	}
+}
+
+func TestE2ERawOutput(t *testing.T) {
+	tempDir := t.TempDir()
+	t.Setenv("HOME", tempDir)
+
+	// 1. Check raw status with no session active
+	stdout, _, err := runFlowCommand(t, "status", "--raw")
+	if err != nil {
+		t.Fatalf("Expected 'status --raw' to succeed, but got error: %v", err)
+	}
+	if stdout != "" {
+		t.Errorf("Expected empty output for raw status with no session, got: %q", stdout)
+	}
+
+	// 2. Start a session
+	_, _, err = runFlowCommand(t, "start", "--tag", "raw test")
+	if err != nil {
+		t.Fatalf("Failed to start session for raw test: %v", err)
+	}
+
+	// 3. Check raw status with an active session
+	stdout, _, err = runFlowCommand(t, "status", "--raw")
+	if err != nil {
+		t.Fatalf("Expected 'status --raw' to succeed, but got error: %v", err)
+	}
+	if stdout != "raw test" {
+		t.Errorf("Expected raw output to be 'raw test', got: %q", stdout)
+	}
+
+	// 4. End the session
+	_, _, err = runFlowCommand(t, "end")
+	if err != nil {
+		t.Fatalf("Failed to end session for raw test: %v", err)
+	}
+}
+
+func TestE2EHooks(t *testing.T) {
+	// Create a temporary directory and force all configuration paths to use it.
+	// This makes the test reliable regardless of the user's actual home directory
+	// or how the CI environment is configured.
+	tempDir := t.TempDir()
+	t.Setenv("HOME", tempDir)
+	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	defer func() {
+		t.Setenv("HOME", "")
+		t.Setenv("XDG_CONFIG_HOME", "")
+	}()
+
+	hooksDir := filepath.Join(tempDir, "flow", "hooks")
+	err := os.MkdirAll(hooksDir, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create hooks directory: %v", err)
+	}
+
+	// Create a hook script for the 'on_start' event
+	hookScriptPath := filepath.Join(hooksDir, "on_start")
+	hookOutputPath := filepath.Join(tempDir, "hook_output.txt")
+
+	scriptContent := fmt.Sprintf("#!/bin/sh\necho \"Hook triggered for tag: $1\" > %s\n", hookOutputPath)
+	err = os.WriteFile(hookScriptPath, []byte(scriptContent), 0755)
+	if err != nil {
+		t.Fatalf("Failed to write hook script: %v", err)
+	}
+
+	// Start a flow session, which should trigger the hook
+	_, _, err = runFlowCommand(t, "start", "--tag", "hook test")
+	if err != nil {
+		t.Fatalf("Failed to start session for hook test: %v", err)
+	}
+
+	// Check if the hook was executed by reading the output file
+	outputBytes, err := os.ReadFile(hookOutputPath)
+	if err != nil {
+		t.Fatalf("Failed to read hook output file: %v", err)
+	}
+
+	expectedOutput := "Hook triggered for tag: hook test\n"
+	if string(outputBytes) != expectedOutput {
+		t.Errorf("Expected hook output to be %q, got %q", expectedOutput, string(outputBytes))
+	}
+
+	// Clean up by ending the session
+	_, _, err = runFlowCommand(t, "end")
+	if err != nil {
+		t.Logf("Failed to end session during hook test cleanup (non-critical): %v", err)
 	}
 }
