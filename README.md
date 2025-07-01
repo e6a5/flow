@@ -34,6 +34,7 @@ echo 'eval "$(flow completion zsh)"' >> ~/.zshrc
 
 - **Mindful Focus**: Helps you maintain a single-tasking mindset with one active session at a time
 - **Session Management**: Start, pause, resume, and end sessions easily
+- **Session Logging**: Automatic tracking of completed sessions for reflection and insights
 - **Shell Integration**: Seamlessly integrates with your shell for ambient awareness
 - **Automation Hooks**: Customize workflows with session event hooks (`on_start`, `on_pause`, `on_resume`, `on_end`)
 - **Privacy First**: No tracking, no cloud, purely local with XDG-compliant storage
@@ -52,7 +53,25 @@ Flow believes in creating a mindful boundary around your work. It's about protec
 | `pause` | Take a mindful break | `flow pause` |
 | `resume` | Continue working | `flow resume` |
 | `end` | Complete the session | `flow end` |
+| `log [flags]` | View session history | `flow log --today --stats` |
 | `completion [bash\|zsh]` | Generate shell completions | `flow completion bash` |
+
+### 📊 Log Command Options
+
+| Flag | Description |
+| ---- | ----------- |
+| `--today` | Show only today's sessions |
+| `--week` | Show this week's sessions |
+| `--stats` | Display summary statistics |
+| `--all` | Show all sessions (no limit) |
+
+**Examples:**
+```bash
+flow log                    # Recent sessions (last 10)
+flow log --today            # Today's work only
+flow log --week --stats     # This week's statistics
+flow log --all              # Complete history
+```
 
 ## 🔧 Installation and Usage
 
@@ -102,10 +121,10 @@ echo "Starting work on: $1" | notify-send "Flow"
 Flow follows XDG Base Directory standards:
 
 - **Session data**: `$XDG_DATA_HOME/flow/session` (default: `~/.local/share/flow/session`)
+- **Session logs**: `$XDG_DATA_HOME/flow/logs/YYYYMM_sessions.jsonl` (default: `~/.local/share/flow/logs/202507_sessions.jsonl`)
 - **Hooks**: `$XDG_CONFIG_HOME/flow/hooks/` (default: `~/.config/flow/hooks/`)
 - **Custom session path**: Set `FLOW_SESSION_PATH` environment variable
-
-
+- **Custom log path**: Set `FLOW_LOG_PATH` environment variable
 
 ## Contributing
 

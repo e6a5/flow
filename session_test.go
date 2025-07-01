@@ -236,3 +236,140 @@ func TestSessionStateTransitions(t *testing.T) {
 		})
 	}
 }
+
+// Test logging functionality
+func TestSessionLogging(t *testing.T) {
+	tempDir := t.TempDir()
+	t.Setenv("XDG_DATA_HOME", tempDir)
+
+	// Create test log entries
+	entries := []LogEntry{
+		{
+			Tag:       "test work",
+			StartTime: time.Now().Add(-2 * time.Hour),
+			EndTime:   time.Now().Add(-90 * time.Minute),
+			Duration:  30 * time.Minute,
+		},
+		{
+			Tag:       "another task",
+			StartTime: time.Now().Add(-1 * time.Hour),
+			EndTime:   time.Now().Add(-30 * time.Minute),
+			Duration:  30 * time.Minute,
+		},
+	}
+
+	// Test logging entries
+	for _, entry := range entries {
+		err := logSession(entry)
+		if err != nil {
+			t.Fatalf("Failed to log session: %v", err)
+		}
+	}
+
+	// Test loading entries using new LogReader
+	reader, err := NewLogReader()
+	if err != nil {
+		t.Fatalf("Failed to create log reader: %v", err)
+	}
+
+	loadedEntries, err := reader.ReadAllEntries()
+	if err != nil {
+		t.Fatalf("Failed to load log entries: %v", err)
+	}
+
+	if len(loadedEntries) != 2 {
+		t.Errorf("Expected 2 entries, got %d", len(loadedEntries))
+	}
+
+	// Verify entry content (entries are sorted newest first)
+	if loadedEntries[0].Tag != "another task" {
+		t.Errorf("Expected tag 'another task', got '%s'", loadedEntries[0].Tag)
+	}
+
+	if loadedEntries[0].Duration != 30*time.Minute {
+		t.Errorf("Expected duration 30m, got %v", loadedEntries[0].Duration)
+	}
+
+	// Verify second entry
+	if loadedEntries[1].Tag != "test work" {
+		t.Errorf("Expected tag 'test work', got '%s'", loadedEntries[1].Tag)
+	}
+}
+
+func TestEmptyLogHandling(t *testing.T) {
+	tempDir := t.TempDir()
+	t.Setenv("XDG_DATA_HOME", tempDir)
+
+	// Test loading from non-existent log using new LogReader
+	reader, err := NewLogReader()
+	if err != nil {
+		t.Fatalf("Failed to create log reader: %v", err)
+	}
+
+	entries, err := reader.ReadAllEntries()
+	if err != nil {
+		t.Fatalf("Expected no error for non-existent log, got: %v", err)
+	}
+
+	if len(entries) != 0 {
+		t.Errorf("Expected empty slice, got %d entries", len(entries))
+	}
+}
+
+func TestLogReaderFiltering(t *testing.T) {
+	tempDir := t.TempDir()
+	logPath := filepath.Join(tempDir, "filter-test.jsonl")
+	t.Setenv("FLOW_LOG_PATH", logPath)
+
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 10, 0, 0, 0, now.Location())
+	yesterday := today.AddDate(0, 0, -1)
+	lastWeek := today.AddDate(0, 0, -8)
+
+	entries := []LogEntry{
+		{Tag: "today1", StartTime: today, EndTime: today.Add(30 * time.Minute), Duration: 30 * time.Minute},
+		{Tag: "today2", StartTime: today.Add(2 * time.Hour), EndTime: today.Add(2*time.Hour + 30*time.Minute), Duration: 30 * time.Minute},
+		{Tag: "yesterday", StartTime: yesterday, EndTime: yesterday.Add(30 * time.Minute), Duration: 30 * time.Minute},
+		{Tag: "lastweek", StartTime: lastWeek, EndTime: lastWeek.Add(30 * time.Minute), Duration: 30 * time.Minute},
+	}
+
+	// Log all entries
+	for _, entry := range entries {
+		err := logSession(entry)
+		if err != nil {
+			t.Fatalf("Failed to log session: %v", err)
+		}
+	}
+
+	reader, err := NewLogReader()
+	if err != nil {
+		t.Fatalf("Failed to create log reader: %v", err)
+	}
+
+	// Test today filter
+	todayEntries, err := reader.ReadRecentEntries(100, true, false)
+	if err != nil {
+		t.Fatalf("Failed to read today entries: %v", err)
+	}
+	if len(todayEntries) != 2 {
+		t.Errorf("Expected 2 today entries, got %d", len(todayEntries))
+	}
+
+	// Test week filter
+	weekEntries, err := reader.ReadRecentEntries(100, false, true)
+	if err != nil {
+		t.Fatalf("Failed to read week entries: %v", err)
+	}
+	if len(weekEntries) != 3 { // today1, today2, yesterday
+		t.Errorf("Expected 3 week entries, got %d", len(weekEntries))
+	}
+
+	// Test no filter
+	allEntries, err := reader.ReadAllEntries()
+	if err != nil {
+		t.Fatalf("Failed to read all entries: %v", err)
+	}
+	if len(allEntries) != 4 {
+		t.Errorf("Expected 4 total entries, got %d", len(allEntries))
+	}
+}

@@ -27,13 +27,16 @@ const bashCompletion = `
 _flow_completions() {
     COMPREPLY=()
     local cur="${COMP_WORDS[COMP_CWORD]}"
-    local commands="start status pause resume end completion"
+    local commands="start status pause resume end log completion"
     local shells="bash zsh"
+    local log_flags="--today --week --month --stats --all"
 
     if [ "${COMP_CWORD}" -eq 1 ]; then
         COMPREPLY=( $(compgen -W "${commands}" -- "${cur}") )
     elif [ "${COMP_CWORD}" -eq 2 ] && [ "${COMP_WORDS[1]}" = "completion" ]; then
         COMPREPLY=( $(compgen -W "${shells}" -- "${cur}") )
+    elif [ "${COMP_WORDS[1]}" = "log" ]; then
+        COMPREPLY=( $(compgen -W "${log_flags}" -- "${cur}") )
     fi
 }
 complete -F _flow_completions flow
@@ -50,6 +53,7 @@ _flow() {
         'pause:Pause the current session'
         'resume:Resume a paused session'
         'end:End the current session'
+        'log:Show session history'
         'completion:Generate completion script'
     )
     _describe 'command' commands
@@ -62,6 +66,17 @@ _flow() {
                 'zsh:Generate Zsh completion script'
             )
             _describe 'shell' shells
+            ;;
+        log)
+            local -a log_flags
+            log_flags=(
+                '--today:Show today'\''s sessions only'
+                '--week:Show this week'\''s sessions'
+                '--month:Show this month'\''s sessions'
+                '--stats:Show summary statistics'
+                '--all:Show all sessions'
+            )
+            _describe 'log options' log_flags
             ;;
     esac
 }

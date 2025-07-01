@@ -29,8 +29,8 @@ test:
 	@./scripts/test-install.sh
 
 # Format code
-fmt:
-	go fmt ./...
+lint:
+	go vet ./... && go fmt ./... && golangci-lint run ./...
 
 # Development: run with example
 dev:

@@ -25,6 +25,7 @@ USAGE:
   flow pause                         Pause current session
   flow resume                        Resume paused session
   flow end                          End current session
+  	flow log [--today|--week|--month|--stats|--all]  Show session history
   flow completion [bash|zsh]         Output shell completion script
 
 EXAMPLES:
@@ -34,6 +35,11 @@ EXAMPLES:
   flow pause                    # Take a break
   flow resume                   # Continue working
   flow end                      # Complete session
+  flow log                      # Show recent sessions
+  flow log --today              # Today's sessions only
+  flow log --month              # This month's sessions
+  flow log 2025-07              # Specific month (YYYY-MM)
+  flow log --stats              # Show summary statistics
 
 One session at a time. No tracking. Pure focus.
 

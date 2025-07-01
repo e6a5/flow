@@ -31,6 +31,8 @@ func main() {
 		handleResume()
 	case "end":
 		handleEnd()
+	case "log":
+		handleLog()
 	case "completion":
 		handleCompletion()
 	case "--help", "-h":

@@ -52,7 +52,7 @@ func handleStart() {
 	fmt.Printf("\n%s   Clear your mind%s\n", Dim, Reset)
 	fmt.Printf("%s   Focus on what matters%s\n", Dim, Reset)
 	fmt.Printf("%s   Let distractions pass%s\n", Dim, Reset)
-	fmt.Printf("\nSession active in background.\n")
+	fmt.Printf("\nDeep work session initiated.\n")
 	fmt.Printf("%sUse 'flow status' to check, 'flow end' to complete.%s\n\n", Gray, Reset)
 
 	runHook("on_start", session.Tag)
@@ -169,9 +169,25 @@ func handleEnd() {
 		os.Exit(1)
 	}
 
+	endTime := time.Now()
 	totalDuration := time.Since(session.StartTime) - session.TotalPaused
 	if session.IsPaused {
 		totalDuration = session.PausedAt.Sub(session.StartTime) - session.TotalPaused
+		endTime = session.PausedAt
+	}
+
+	// Log the completed session before removing the session file
+	logEntry := LogEntry{
+		Tag:         session.Tag,
+		StartTime:   session.StartTime,
+		EndTime:     endTime,
+		Duration:    totalDuration,
+		TotalPaused: session.TotalPaused,
+	}
+
+	if err := logSession(logEntry); err != nil {
+		// Don't fail the session end if logging fails, just warn
+		fmt.Fprintf(os.Stderr, "Warning: failed to log session: %v\n", err)
 	}
 
 	// Remove session file
