@@ -151,8 +151,9 @@ install_flow() {
         success "Verification: $(flow --version)"
         echo
         log "🌊 Flow is ready! Try:"
-        log "  flow 25 --tag \"quick session\""
-        log "  flow 50 && zenta"
+        log "  flow start --tag \"writing docs\""
+        log "  flow status"
+        log "  flow end"
         echo
         log "For help: flow --help"
         log "Documentation: https://github.com/$REPO"
@@ -171,12 +172,12 @@ install_flow() {
     case "$SHELL_TYPE" in
         bash)
             log "\n# For Bash:"
-            log 'echo ''source <(flow completion bash)'' >> ~/.bashrc'
+            log 'echo ''eval "$(flow completion bash)"'' >> ~/.bashrc'
             warn "You may need to restart your shell for changes to take effect."
             ;;
         zsh)
             log "\n# For Zsh:"
-            log 'echo ''source <(flow completion zsh)'' >> ~/.zshrc'
+            log 'echo ''eval "$(flow completion zsh)"'' >> ~/.zshrc'
             warn "You may need to restart your shell for changes to take effect."
             ;;
         *)

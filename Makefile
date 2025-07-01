@@ -34,7 +34,7 @@ fmt:
 
 # Development: run with example
 dev:
-	go run $(LDFLAGS) ./... 1 --tag "dev test"
+	go run $(LDFLAGS) ./... start --tag "dev test"
 
 # Build for multiple platforms
 release:
