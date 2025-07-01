@@ -26,10 +26,10 @@ var (
 
 // Session represents a Flow work session
 type Session struct {
-	Tag       string    `json:"tag"`
-	StartTime time.Time `json:"start_time"`
-	PausedAt  time.Time `json:"paused_at,omitempty"`
-	IsPaused  bool      `json:"is_paused"`
+	Tag         string        `json:"tag"`
+	StartTime   time.Time     `json:"start_time"`
+	PausedAt    time.Time     `json:"paused_at,omitempty"`
+	IsPaused    bool          `json:"is_paused"`
 	TotalPaused time.Duration `json:"total_paused"`
 }
 
@@ -40,7 +40,7 @@ func main() {
 	}
 
 	command := os.Args[1]
-	
+
 	switch command {
 	case "start":
 		handleStart()
@@ -56,9 +56,9 @@ func main() {
 		showUsage()
 	case "--version", "-v":
 		showVersion()
-		default:
+	default:
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
-			showUsage()
+		showUsage()
 		os.Exit(1)
 	}
 }
@@ -125,7 +125,7 @@ func handleStart() {
 			tag = strings.TrimPrefix(os.Args[2], "--tag=")
 		}
 	}
-	
+
 	// Create new session
 	session := Session{
 		Tag:       tag,
@@ -158,7 +158,7 @@ func handleStatus() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading session: %v\n", err)
 		os.Exit(1)
-		}
+	}
 
 	if session.IsPaused {
 		pausedDuration := time.Since(session.PausedAt)
@@ -242,7 +242,7 @@ func handleEnd() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading session: %v\n", err)
 		os.Exit(1)
-}
+	}
 
 	totalDuration := time.Since(session.StartTime) - session.TotalPaused
 	if session.IsPaused {
@@ -290,7 +290,7 @@ func saveSession(session Session) error {
 func formatDuration(d time.Duration) string {
 	hours := int(d.Hours())
 	minutes := int(d.Minutes()) % 60
-	
+
 	if hours > 0 {
 		return fmt.Sprintf("%dh %dm", hours, minutes)
 	}
@@ -299,5 +299,3 @@ func formatDuration(d time.Duration) string {
 	}
 	return fmt.Sprintf("%ds", int(d.Seconds()))
 }
-
- 

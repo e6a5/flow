@@ -314,10 +314,10 @@ func TestSessionEnforcement(t *testing.T) {
 	os.Setenv("HOME", tempDir)
 
 	tests := []struct {
-		name           string
+		name            string
 		existingSession *Session
-		newTag         string
-		shouldAllow    bool
+		newTag          string
+		shouldAllow     bool
 		expectedMessage string
 	}{
 		{
@@ -402,16 +402,16 @@ func getCurrentSessionState() sessionState {
 	if !sessionExists() {
 		return sessionStateNone
 	}
-	
+
 	session, err := loadSession()
 	if err != nil {
 		return sessionStateNone
 	}
-	
+
 	if session.IsPaused {
 		return sessionStatePaused
 	}
-	
+
 	return sessionStateActive
 }
 
@@ -419,7 +419,7 @@ func parseTagFromArgs(args []string) string {
 	if len(args) == 0 {
 		return "Deep Work"
 	}
-	
+
 	for i, arg := range args {
 		if arg == "--tag" && i+1 < len(args) {
 			return args[i+1]
@@ -428,7 +428,7 @@ func parseTagFromArgs(args []string) string {
 			return arg[6:]
 		}
 	}
-	
+
 	return "Deep Work"
 }
 
@@ -436,16 +436,16 @@ func canStartNewSession() (bool, string) {
 	if !sessionExists() {
 		return true, ""
 	}
-	
+
 	session, err := loadSession()
 	if err != nil {
 		return true, ""
 	}
-	
+
 	if session.IsPaused {
 		return false, "You have a paused session"
 	}
-	
+
 	return false, "Already in deep work"
 }
 
@@ -469,7 +469,7 @@ func TestBasicFunctions(t *testing.T) {
 			fn:   showUsage,
 		},
 		{
-			name: "showVersion", 
+			name: "showVersion",
 			fn:   showVersion,
 		},
 	}
@@ -484,4 +484,4 @@ func TestBasicFunctions(t *testing.T) {
 			tt.fn()
 		})
 	}
-} 
+}
