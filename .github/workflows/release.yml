@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -18,15 +22,8 @@ jobs:
 
     - name: Build binaries
       run: |
-        # Create dist directory
-        mkdir -p dist
-        
-        # Build for different platforms
-        GOOS=linux GOARCH=amd64 go build -o dist/flow-linux-amd64 main.go
-        GOOS=linux GOARCH=arm64 go build -o dist/flow-linux-arm64 main.go
-        GOOS=darwin GOARCH=amd64 go build -o dist/flow-darwin-amd64 main.go
-        GOOS=darwin GOARCH=arm64 go build -o dist/flow-darwin-arm64 main.go
-        GOOS=windows GOARCH=amd64 go build -o dist/flow-windows-amd64.exe main.go
+        # Build binaries using Makefile
+        make release
         
         # Create archives
         cd dist
@@ -56,4 +53,4 @@ jobs:
           go install github.com/e6a5/flow@${{ github.ref_name }}
           ```
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }} 
