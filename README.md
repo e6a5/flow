@@ -1,8 +1,8 @@
 # 🌊 Flow
 
-> Protect Your Attention
+> A Command-Line Tool for Deep Work
 
-A mindful boundary for deep work, designed in the spirit of [Zenta](https://github.com/e6a5/zenta).
+Flow is a minimalist command-line tool for creating a mindful boundary around your work. It helps you protect your attention and engage in single-tasking.
 
 ## Installation
 
@@ -12,7 +12,7 @@ A mindful boundary for deep work, designed in the spirit of [Zenta](https://gith
 curl -sSL https://raw.githubusercontent.com/e6a5/flow/main/install.sh | bash
 ```
 
-*The install script automatically detects your platform and downloads the appropriate binary to `/usr/local/bin`.*
+*The install script automatically detects your platform, downloads the appropriate binary to `/usr/local/bin`, and provides instructions for enabling shell completion.*
 
 ### Go Install
 
@@ -44,46 +44,51 @@ flow end                          # Complete session
 
 ## What It Does
 
-* Creates a mindful boundary around your work
-* Maintains one focused session at a time
-* Runs quietly in background while you work
-* Provides gentle awareness of current focus
-* Respects natural work rhythms with pause/resume
+*   Creates a mindful boundary around your work
+*   Maintains one focused session at a time
+*   Runs quietly while you work
+*   Provides gentle awareness of your current focus
+*   Respects natural work rhythms with pause/resume
 
 ## Philosophy
 
-Flow is not a productivity app.  
-It's a ritual for protecting attention.  
+Flow is not a productivity app.
+It's a ritual for protecting your attention.
 It's a boundary you place around your mind.
 
-Following Unix philosophy, Flow does one thing well: session boundaries.  
-Following Zenta spirit, it serves consciousness, not metrics.
+Following the Unix philosophy, Flow does one thing well: creating and managing focus sessions. It serves your consciousness, not metrics.
 
 ## Core Commands
 
 | Command | Purpose | Example |
-|---------|---------|---------|
+|---|---|---|
 | `start` | Begin deep work session | `flow start --tag "refactoring"` |
 | `status` | Check current session | `flow status` |
-| `pause` | Mindful break | `flow pause` |
+| `pause` | Take a mindful break | `flow pause` |
 | `resume` | Continue working | `flow resume` |
-| `end` | Complete session | `flow end` |
+| `end` | Complete the session | `flow end` |
+| `completion`| Generate shell completion script | `flow completion zsh` |
+
 
 ## Examples
 
 ### Starting Work
+
 ```bash
 # Begin focused work
 flow start --tag "writing documentation"
 
 🌊 Starting deep work: writing documentation
+
    Clear your mind
-   Focus on what matters  
+   Focus on what matters
    Let distractions pass
-Session active in background.
+
+Session active. Use 'flow status' to check.
 ```
 
 ### Checking Progress
+
 ```bash
 flow status
 🌊 Deep work: writing documentation
@@ -91,6 +96,7 @@ Active for 1h 23m.
 ```
 
 ### Taking Breaks
+
 ```bash
 flow pause
 ⏸️  Paused: writing documentation
@@ -103,6 +109,7 @@ Continue your deep work.
 ```
 
 ### Completing Work
+
 ```bash
 flow end
 ✨ Session complete: writing documentation
@@ -110,53 +117,44 @@ Total focus time: 2h 15m
 Carry this focus forward.
 ```
 
-## Composing with Zenta
+## Shell Completion
+
+To make using `flow` even easier, you can enable shell completion. The `install.sh` script will provide instructions, but you can also generate the script manually.
+
+For example, to enable completion for Zsh, add this to your `.zshrc`:
 
 ```bash
-flow end && zenta           # Breathe after completion
-flow start --tag "deep work" # Enter focus
-flow pause && zenta now     # Mindful break
+source <(flow completion zsh)
 ```
+
+Supported shells: `bash`, `zsh`.
+
+## Configuration
+
+The session file is stored locally on your machine. The path is determined in the following order:
+
+1.  `$FLOW_SESSION_PATH`: An explicit file path.
+2.  `$XDG_DATA_HOME/flow/session`: The standard path on Linux.
+3.  `~/.local/share/flow/session`: The fallback XDG path.
+4.  `~/.flow-session`: For backward compatibility.
 
 ## Design Principles
 
-- 🧘 **Mindful**: Ritual approach, not productivity hack
-- 🎯 **Focused**: One session at a time, no multitasking
-- 🔒 **Private**: No tracking, no cloud, purely local
-- 🌿 **Gentle**: Respects natural work rhythms
-- 🔄 **Simple**: Clean Unix-like commands
-- 💫 **Present**: Awareness without optimization
+-   🧘 **Mindful**: A ritualistic approach, not a productivity hack.
+-   🎯 **Focused**: One session at a time, no multitasking.
+-   🔒 **Private**: No tracking, no cloud, purely local.
+-   🌿 **Gentle**: Respects natural work rhythms.
+-   🔄 **Simple**: Clean, Unix-like commands.
+-   💫 **Present**: Promotes awareness without optimization.
 
-## Why Flow?
-
-**Real vs Fake Focus Tools:**
-
-✅ **Real (Flow's way):**
-- Creates sacred space for work
-- One thing at a time enforcement  
-- Mindful boundaries, not metrics
-- Serves attention, not productivity
-
-❌ **Fake:**
-- Tracking productivity scores
-- Optimizing work performance
-- Gamifying focus time
-- Measuring output metrics
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-Flow follows the same principles as Zenta: mindful computing that serves consciousness.
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. This is a tool for mindful computing that serves consciousness.
 
 ## License
 
 [MIT License](LICENSE) - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Inspired by [Zenta](https://github.com/e6a5/zenta) - mindfulness for terminal users
-- Built with intention for conscious developers
 
 ---
 

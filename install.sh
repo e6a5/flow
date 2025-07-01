@@ -163,6 +163,27 @@ install_flow() {
         warn "  - Add $INSTALL_DIR to your PATH"
         warn "  - Or run: export PATH=\"$INSTALL_DIR:\$PATH\""
     fi
+
+    # Shell completion instructions
+    SHELL_TYPE=$(basename "$SHELL")
+    log "To enable shell completion, add the following to your shell's config file:"
+
+    case "$SHELL_TYPE" in
+        bash)
+            log "\n# For Bash:"
+            log 'echo ''source <(flow completion bash)'' >> ~/.bashrc'
+            warn "You may need to restart your shell for changes to take effect."
+            ;;
+        zsh)
+            log "\n# For Zsh:"
+            log 'echo ''source <(flow completion zsh)'' >> ~/.zshrc'
+            warn "You may need to restart your shell for changes to take effect."
+            ;;
+        *)
+            warn "Unsupported shell for automatic completion setup: ${SHELL_TYPE}"
+            warn "Run 'flow completion --help' for manual instructions."
+            ;;
+    esac
 }
 
 # Main

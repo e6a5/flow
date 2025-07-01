@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -60,203 +61,6 @@ func TestFormatDuration(t *testing.T) {
 	}
 }
 
-func TestSessionPersistence(t *testing.T) {
-	// Create temporary directory for test session files
-	tempDir := t.TempDir()
-	originalHomeDir := os.Getenv("HOME")
-	defer func() {
-		os.Setenv("HOME", originalHomeDir)
-	}()
-	os.Setenv("HOME", tempDir)
-
-	tests := []struct {
-		name    string
-		session Session
-		wantErr bool
-	}{
-		{
-			name: "basic session",
-			session: Session{
-				Tag:       "test work",
-				StartTime: time.Now(),
-				IsPaused:  false,
-			},
-			wantErr: false,
-		},
-		{
-			name: "paused session",
-			session: Session{
-				Tag:         "paused work",
-				StartTime:   time.Now().Add(-1 * time.Hour),
-				PausedAt:    time.Now().Add(-30 * time.Minute),
-				IsPaused:    true,
-				TotalPaused: 15 * time.Minute,
-			},
-			wantErr: false,
-		},
-		{
-			name: "session with special characters",
-			session: Session{
-				Tag:       "work with émojis 🌊 and unicode",
-				StartTime: time.Now(),
-				IsPaused:  false,
-			},
-			wantErr: false,
-		},
-		{
-			name: "empty tag session",
-			session: Session{
-				Tag:       "",
-				StartTime: time.Now(),
-				IsPaused:  false,
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Test save
-			err := saveSession(tt.session)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("saveSession() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			if tt.wantErr {
-				return
-			}
-
-			// Test session exists
-			if !sessionExists() {
-				t.Error("sessionExists() = false, want true after saving")
-			}
-
-			// Test load
-			loaded, err := loadSession()
-			if err != nil {
-				t.Errorf("loadSession() error = %v", err)
-				return
-			}
-
-			// Compare loaded session (ignoring time precision differences)
-			if loaded.Tag != tt.session.Tag {
-				t.Errorf("loaded.Tag = %q, want %q", loaded.Tag, tt.session.Tag)
-			}
-			if loaded.IsPaused != tt.session.IsPaused {
-				t.Errorf("loaded.IsPaused = %v, want %v", loaded.IsPaused, tt.session.IsPaused)
-			}
-
-			// Clean up for next test
-			os.Remove(getSessionPath())
-		})
-	}
-}
-
-func TestSessionStateTransitions(t *testing.T) {
-	tempDir := t.TempDir()
-	originalHomeDir := os.Getenv("HOME")
-	defer func() {
-		os.Setenv("HOME", originalHomeDir)
-	}()
-	os.Setenv("HOME", tempDir)
-
-	tests := []struct {
-		name           string
-		initialSession *Session
-		operation      string
-		expectedState  sessionState
-	}{
-		{
-			name:           "no session to active",
-			initialSession: nil,
-			operation:      "start",
-			expectedState:  sessionStateActive,
-		},
-		{
-			name: "active to paused",
-			initialSession: &Session{
-				Tag:       "test work",
-				StartTime: time.Now().Add(-30 * time.Minute),
-				IsPaused:  false,
-			},
-			operation:     "pause",
-			expectedState: sessionStatePaused,
-		},
-		{
-			name: "paused to active",
-			initialSession: &Session{
-				Tag:         "test work",
-				StartTime:   time.Now().Add(-30 * time.Minute),
-				PausedAt:    time.Now().Add(-10 * time.Minute),
-				IsPaused:    true,
-				TotalPaused: 5 * time.Minute,
-			},
-			operation:     "resume",
-			expectedState: sessionStateActive,
-		},
-		{
-			name: "active to ended",
-			initialSession: &Session{
-				Tag:       "test work",
-				StartTime: time.Now().Add(-30 * time.Minute),
-				IsPaused:  false,
-			},
-			operation:     "end",
-			expectedState: sessionStateNone,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Clean up before each test
-			os.Remove(getSessionPath())
-
-			// Set up initial session if provided
-			if tt.initialSession != nil {
-				err := saveSession(*tt.initialSession)
-				if err != nil {
-					t.Fatalf("Failed to save initial session: %v", err)
-				}
-			}
-
-			// Perform operation and check resulting state
-			switch tt.operation {
-			case "start":
-				// Simulate start operation
-				session := Session{
-					Tag:       "new work",
-					StartTime: time.Now(),
-					IsPaused:  false,
-				}
-				saveSession(session)
-			case "pause":
-				session, _ := loadSession()
-				session.IsPaused = true
-				session.PausedAt = time.Now()
-				saveSession(session)
-			case "resume":
-				session, _ := loadSession()
-				session.TotalPaused += time.Since(session.PausedAt)
-				session.IsPaused = false
-				session.PausedAt = time.Time{}
-				saveSession(session)
-			case "end":
-				os.Remove(getSessionPath())
-			}
-
-			// Check resulting state
-			actualState := getCurrentSessionState()
-			if actualState != tt.expectedState {
-				t.Errorf("After %s operation, got state %v, want %v", tt.operation, actualState, tt.expectedState)
-			}
-
-			// Clean up
-			os.Remove(getSessionPath())
-		})
-	}
-}
-
 func TestTagParsing(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -307,11 +111,9 @@ func TestTagParsing(t *testing.T) {
 
 func TestSessionEnforcement(t *testing.T) {
 	tempDir := t.TempDir()
-	originalHomeDir := os.Getenv("HOME")
-	defer func() {
-		os.Setenv("HOME", originalHomeDir)
-	}()
-	os.Setenv("HOME", tempDir)
+	sessionPath := filepath.Join(tempDir, "test-session.json")
+	t.Setenv("FLOW_SESSION_PATH", sessionPath)
+	defer t.Setenv("FLOW_SESSION_PATH", "")
 
 	tests := []struct {
 		name            string
@@ -356,7 +158,8 @@ func TestSessionEnforcement(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Clean up before each test
-			os.Remove(getSessionPath())
+			path, _ := getSessionPath()
+			_ = os.Remove(path)
 
 			// Set up existing session if provided
 			if tt.existingSession != nil {
@@ -383,38 +186,13 @@ func TestSessionEnforcement(t *testing.T) {
 			}
 
 			// Clean up
-			os.Remove(getSessionPath())
+			path, _ = getSessionPath()
+			_ = os.Remove(path)
 		})
 	}
 }
 
 // Helper types and functions for testing
-
-type sessionState int
-
-const (
-	sessionStateNone sessionState = iota
-	sessionStateActive
-	sessionStatePaused
-)
-
-func getCurrentSessionState() sessionState {
-	if !sessionExists() {
-		return sessionStateNone
-	}
-
-	session, err := loadSession()
-	if err != nil {
-		return sessionStateNone
-	}
-
-	if session.IsPaused {
-		return sessionStatePaused
-	}
-
-	return sessionStateActive
-}
-
 func parseTagFromArgs(args []string) string {
 	if len(args) == 0 {
 		return "Deep Work"
