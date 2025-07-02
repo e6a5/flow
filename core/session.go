@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"encoding/json"
@@ -27,7 +27,7 @@ type LogEntry struct {
 }
 
 // Session file management
-func getSessionPath() (string, error) {
+func GetSessionPath() (string, error) {
 	// 1. Check for FLOW_SESSION_PATH environment variable
 	if path := os.Getenv("FLOW_SESSION_PATH"); path != "" {
 		return path, nil
@@ -54,8 +54,8 @@ func getSessionPath() (string, error) {
 	return xdgDefaultPath, nil
 }
 
-// getLogPath returns the path to the session log file for a specific month
-func getLogPath(date time.Time) (string, error) {
+// GetLogPath returns the path to the session log file for a specific month
+func GetLogPath(date time.Time) (string, error) {
 	// 1. Check for FLOW_LOG_PATH environment variable (base directory)
 	baseDir := ""
 	if path := os.Getenv("FLOW_LOG_PATH"); path != "" {
@@ -78,9 +78,9 @@ func getLogPath(date time.Time) (string, error) {
 	return filepath.Join(baseDir, "logs", filename), nil
 }
 
-// getLogDir returns the directory containing all log files
-func getLogDir() (string, error) {
-	// Use same logic as getLogPath but return the logs directory
+// GetLogDir returns the directory containing all log files
+func GetLogDir() (string, error) {
+	// Use same logic as GetLogPath but return the logs directory
 	if path := os.Getenv("FLOW_LOG_PATH"); path != "" {
 		return filepath.Join(filepath.Dir(path), "logs"), nil
 	} else if xdgDataHome := os.Getenv("XDG_DATA_HOME"); xdgDataHome != "" {
@@ -94,8 +94,8 @@ func getLogDir() (string, error) {
 	}
 }
 
-func sessionExists() bool {
-	path, err := getSessionPath()
+func SessionExists() bool {
+	path, err := GetSessionPath()
 	if err != nil {
 		return false
 	}
@@ -103,9 +103,9 @@ func sessionExists() bool {
 	return err == nil
 }
 
-func loadSession() (Session, error) {
+func LoadSession() (Session, error) {
 	var session Session
-	path, err := getSessionPath()
+	path, err := GetSessionPath()
 	if err != nil {
 		return session, err
 	}
@@ -117,8 +117,8 @@ func loadSession() (Session, error) {
 	return session, err
 }
 
-func saveSession(session Session) error {
-	path, err := getSessionPath()
+func SaveSession(session Session) error {
+	path, err := GetSessionPath()
 	if err != nil {
 		return err
 	}
@@ -133,9 +133,9 @@ func saveSession(session Session) error {
 	return os.WriteFile(path, data, 0644)
 }
 
-// logSession appends a completed session to the appropriate monthly log file
-func logSession(entry LogEntry) error {
-	logPath, err := getLogPath(entry.EndTime)
+// LogSession appends a completed session to the appropriate monthly log file
+func LogSession(entry LogEntry) error {
+	logPath, err := GetLogPath(entry.EndTime)
 	if err != nil {
 		return err
 	}

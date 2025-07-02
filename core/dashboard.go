@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func handleDashboard() {
+func HandleDashboard() {
 	reader, err := NewLogReader()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating log reader: %v\n", err)
@@ -151,8 +151,8 @@ func displayDashboardStats(dailyTotals map[time.Time]time.Duration, now time.Tim
 	}
 
 	fmt.Printf("%sYearly Stats%s\n", Bold, Reset)
-	fmt.Printf("  Total Focus Time: %s\n", formatDuration(totalTime))
-	fmt.Printf("  Daily Average:    %s\n", formatDuration(avgDailyTime))
+	fmt.Printf("  Total Focus Time: %s\n", FormatDuration(totalTime))
+	fmt.Printf("  Daily Average:    %s\n", FormatDuration(avgDailyTime))
 	fmt.Printf("  Current Streak:   %d days\n", currentStreak)
 	fmt.Println()
 }

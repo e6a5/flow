@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"os"
@@ -64,9 +64,9 @@ func TestSessionPersistence(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Test save
-			err := saveSession(tt.session)
+			err := SaveSession(tt.session)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("saveSession() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("SaveSession() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -75,14 +75,14 @@ func TestSessionPersistence(t *testing.T) {
 			}
 
 			// Test session exists
-			if !sessionExists() {
-				t.Error("sessionExists() = false, want true after saving")
+			if !SessionExists() {
+				t.Error("SessionExists() = false, want true after saving")
 			}
 
 			// Test load
-			loaded, err := loadSession()
+			loaded, err := LoadSession()
 			if err != nil {
-				t.Errorf("loadSession() error = %v", err)
+				t.Errorf("LoadSession() error = %v", err)
 				return
 			}
 
@@ -95,7 +95,7 @@ func TestSessionPersistence(t *testing.T) {
 			}
 
 			// Clean up for next test
-			path, _ := getSessionPath()
+			path, _ := GetSessionPath()
 			_ = os.Remove(path)
 		})
 	}
@@ -110,11 +110,11 @@ const (
 )
 
 func getCurrentSessionState() sessionState {
-	if !sessionExists() {
+	if !SessionExists() {
 		return sessionStateNone
 	}
 
-	session, err := loadSession()
+	session, err := LoadSession()
 	if err != nil {
 		return sessionStateNone
 	}
@@ -181,12 +181,12 @@ func TestSessionStateTransitions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Clean up before each test
-			path, _ := getSessionPath()
+			path, _ := GetSessionPath()
 			_ = os.Remove(path)
 
 			// Set up initial session if provided
 			if tt.initialSession != nil {
-				err := saveSession(*tt.initialSession)
+				err := SaveSession(*tt.initialSession)
 				if err != nil {
 					t.Fatalf("Failed to save initial session: %v", err)
 				}
@@ -201,26 +201,26 @@ func TestSessionStateTransitions(t *testing.T) {
 					StartTime: time.Now(),
 					IsPaused:  false,
 				}
-				if err := saveSession(session); err != nil {
+				if err := SaveSession(session); err != nil {
 					t.Fatalf("Failed to save session for start operation: %v", err)
 				}
 			case "pause":
-				session, _ := loadSession()
+				session, _ := LoadSession()
 				session.IsPaused = true
 				session.PausedAt = time.Now()
-				if err := saveSession(session); err != nil {
+				if err := SaveSession(session); err != nil {
 					t.Fatalf("Failed to save session for pause operation: %v", err)
 				}
 			case "resume":
-				session, _ := loadSession()
+				session, _ := LoadSession()
 				session.TotalPaused += time.Since(session.PausedAt)
 				session.IsPaused = false
 				session.PausedAt = time.Time{}
-				if err := saveSession(session); err != nil {
+				if err := SaveSession(session); err != nil {
 					t.Fatalf("Failed to save session for resume operation: %v", err)
 				}
 			case "end":
-				path, _ := getSessionPath()
+				path, _ := GetSessionPath()
 				_ = os.Remove(path)
 			}
 
@@ -231,7 +231,7 @@ func TestSessionStateTransitions(t *testing.T) {
 			}
 
 			// Clean up
-			path, _ = getSessionPath()
+			path, _ = GetSessionPath()
 			_ = os.Remove(path)
 		})
 	}
@@ -260,7 +260,7 @@ func TestSessionLogging(t *testing.T) {
 
 	// Test logging entries
 	for _, entry := range entries {
-		err := logSession(entry)
+		err := LogSession(entry)
 		if err != nil {
 			t.Fatalf("Failed to log session: %v", err)
 		}
@@ -335,7 +335,7 @@ func TestLogReaderFiltering(t *testing.T) {
 
 	// Log all entries
 	for _, entry := range entries {
-		err := logSession(entry)
+		err := LogSession(entry)
 		if err != nil {
 			t.Fatalf("Failed to log session: %v", err)
 		}
@@ -371,5 +371,124 @@ func TestLogReaderFiltering(t *testing.T) {
 	}
 	if len(allEntries) != 4 {
 		t.Errorf("Expected 4 total entries, got %d", len(allEntries))
+	}
+}
+
+func TestGetSessionPath_Default(t *testing.T) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatalf("Failed to get home dir: %v", err)
+	}
+
+	expectedPath := filepath.Join(homeDir, ".local", "share", "flow", "session")
+	path, err := GetSessionPath()
+	if err != nil {
+		t.Fatalf("getSessionPath() error = %v", err)
+	}
+
+	if path != expectedPath {
+		t.Errorf("Expected path %q, got %q", expectedPath, path)
+	}
+}
+
+func TestGetSessionPath_Legacy(t *testing.T) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatalf("Failed to get home dir: %v", err)
+	}
+	legacyPath := filepath.Join(homeDir, ".flow-session")
+	if _, err := os.Create(legacyPath); err != nil {
+		t.Fatalf("Failed to create legacy session file: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = os.Remove(legacyPath)
+	})
+
+	path, err := GetSessionPath()
+	if err != nil {
+		t.Fatalf("GetSessionPath() error = %v", err)
+	}
+
+	if path != legacyPath {
+		t.Errorf("Expected path %q, got %q", legacyPath, path)
+	}
+}
+
+func TestGetLogPath(t *testing.T) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatalf("Failed to get home dir: %v", err)
+	}
+	expectedDir := filepath.Join(homeDir, ".local", "share", "flow", "logs")
+	testDate := time.Date(2025, 7, 2, 0, 0, 0, 0, time.UTC)
+	logPath, err := GetLogPath(testDate)
+	if err != nil {
+		t.Fatalf("GetLogPath() error = %v", err)
+	}
+
+	expectedLogFile := "202507_sessions.jsonl"
+	expectedFullPath := filepath.Join(expectedDir, expectedLogFile)
+
+	if logPath != expectedFullPath {
+		t.Errorf("Expected log path %q, got %q", expectedFullPath, logPath)
+	}
+}
+
+func TestSaveLoadSession(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("FLOW_SESSION_PATH", filepath.Join(tmpDir, "test-session"))
+
+	session := Session{
+		Tag:         "test work",
+		StartTime:   time.Now(),
+		IsPaused:    false,
+		TotalPaused: 30 * time.Minute,
+	}
+
+	err := SaveSession(session)
+	if err != nil {
+		t.Fatalf("saveSession() error = %v", err)
+	}
+
+	loaded, err := LoadSession()
+	if err != nil {
+		t.Fatalf("loadSession() error = %v", err)
+	}
+
+	if loaded.Tag != session.Tag {
+		t.Errorf("loaded.Tag = %q, want %q", loaded.Tag, session.Tag)
+	}
+	if loaded.IsPaused != session.IsPaused {
+		t.Errorf("loaded.IsPaused = %v, want %v", loaded.IsPaused, session.IsPaused)
+	}
+	if loaded.TotalPaused != session.TotalPaused {
+		t.Errorf("loaded.TotalPaused = %v, want %v", loaded.TotalPaused, session.TotalPaused)
+	}
+}
+
+func TestLogSession(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Setenv("XDG_DATA_HOME", tmpDir)
+
+	entry := LogEntry{
+		Tag:       "test work",
+		StartTime: time.Now().Add(-2 * time.Hour),
+		EndTime:   time.Now().Add(-90 * time.Minute),
+		Duration:  time.Hour,
+	}
+
+	err := LogSession(entry)
+	if err != nil {
+		t.Fatalf("logSession() error = %v", err)
+	}
+
+	logPath, _ := GetLogPath(entry.EndTime)
+	data, err := os.ReadFile(logPath)
+	if err != nil {
+		t.Fatalf("Failed to read log file: %v", err)
+	}
+
+	if len(data) == 0 {
+		t.Error("Expected non-empty log file, got empty")
 	}
 }

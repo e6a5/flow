@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"encoding/csv"
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func handleExport() {
+func HandleExport() {
 	// --- Argument Parsing ---
 	var filterToday, filterWeek, filterMonth, showAll bool
 	var targetMonth *time.Time
@@ -94,7 +94,11 @@ func handleExport() {
 			fmt.Fprintf(os.Stderr, "Error creating output file: %v\n", err)
 			return
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				fmt.Fprintf(os.Stderr, "Error closing output file: %v\n", err)
+			}
+		}()
 		writer = file
 		fmt.Fprintf(os.Stderr, "Exporting %d entries to %s...\n", len(entries), outputFile)
 	}
@@ -131,8 +135,8 @@ func exportCSV(writer io.Writer, entries []LogEntry) {
 			entry.EndTime.Format(time.RFC3339),
 			strconv.FormatInt(int64(entry.Duration.Seconds()), 10),
 			strconv.FormatInt(int64(entry.TotalPaused.Seconds()), 10),
-			formatDuration(entry.Duration),
-			formatDuration(entry.TotalPaused),
+			FormatDuration(entry.Duration),
+			FormatDuration(entry.TotalPaused),
 		}
 		if err := csvWriter.Write(row); err != nil {
 			fmt.Fprintf(os.Stderr, "Error writing CSV row: %v\n", err)
@@ -142,6 +146,12 @@ func exportCSV(writer io.Writer, entries []LogEntry) {
 }
 
 func exportJSON(writer io.Writer, entries []LogEntry) {
+	if entries == nil {
+		if _, err := writer.Write([]byte("[]\n")); err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing empty JSON: %v\n", err)
+		}
+		return
+	}
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "  ") // Pretty-print JSON
 	if err := encoder.Encode(entries); err != nil {

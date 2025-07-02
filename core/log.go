@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"bufio"
@@ -25,7 +25,7 @@ type LogReader struct {
 
 // NewLogReader creates a new log reader
 func NewLogReader() (*LogReader, error) {
-	logDir, err := getLogDir()
+	logDir, err := GetLogDir()
 	if err != nil {
 		return nil, err
 	}
@@ -301,11 +301,11 @@ func CalculateStats(entries []LogEntry) LogStats {
 	return stats
 }
 
-// handleLog handles the log command with improved performance
-func handleLog() {
+// HandleLog handles the log command with improved performance
+func HandleLog() {
 	reader, err := NewLogReader()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error initializing log reader: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error creating log reader: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -355,32 +355,17 @@ func handleLog() {
 			os.Exit(1)
 		}
 	} else {
-		// Use efficient reading for limited results
-		if showStats {
-			// For stats, we need more data but still limit for performance
-			maxEntries = maxEntriesLimit
-		}
+		// Default: show recent entries
+		entries, err = reader.ReadRecentEntries(defaultMaxEntries, false, false)
+	}
 
-		entries, err = reader.ReadRecentEntries(maxEntries, filterToday, filterWeek)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error loading log entries: %v\n", err)
-			os.Exit(1)
-		}
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error loading log entries: %v\n", err)
+		os.Exit(1)
 	}
 
 	if len(entries) == 0 {
-		fmt.Printf("🌊 No completed sessions found.\n")
-		if filterToday {
-			fmt.Printf("No sessions today. Start your first with 'flow start'.\n")
-		} else if filterWeek {
-			fmt.Printf("No sessions this week. Start your first with 'flow start'.\n")
-		} else if filterMonth {
-			fmt.Printf("No sessions this month. Start your first with 'flow start'.\n")
-		} else if targetMonth != nil {
-			fmt.Printf("No sessions in %s. Start your first with 'flow start'.\n", targetMonth.Format("January 2006"))
-		} else {
-			fmt.Printf("Start your first session with 'flow start'.\n")
-		}
+		fmt.Println("No sessions logged for the selected period. Use 'flow start' to begin.")
 		return
 	}
 
@@ -419,7 +404,7 @@ func displayEntries(entries []LogEntry, filterToday, filterWeek, filterMonth boo
 		fmt.Printf("%s %s %s %s\n",
 			date,
 			timeRange,
-			formatDuration(entry.Duration),
+			FormatDuration(entry.Duration),
 			entry.Tag)
 	}
 
@@ -430,7 +415,7 @@ func displayEntries(entries []LogEntry, filterToday, filterWeek, filterMonth boo
 			totalTime += entry.Duration
 		}
 		fmt.Printf("\n%sTotal: %s across %d sessions%s\n",
-			Dim, formatDuration(totalTime), len(entries), Reset)
+			Dim, FormatDuration(totalTime), len(entries), Reset)
 	}
 }
 
@@ -451,9 +436,9 @@ func displayStats(entries []LogEntry, filterToday, filterWeek, filterMonth bool,
 	}
 
 	fmt.Printf("🌊 Deep Work Statistics (%s):\n\n", period)
-	fmt.Printf("Total time:     %s\n", formatDuration(stats.TotalTime))
+	fmt.Printf("Total time:     %s\n", FormatDuration(stats.TotalTime))
 	fmt.Printf("Sessions:       %d\n", stats.TotalSessions)
-	fmt.Printf("Average:        %s per session\n", formatDuration(stats.AverageTime))
+	fmt.Printf("Average:        %s per session\n", FormatDuration(stats.AverageTime))
 
 	if stats.DateRange != "" {
 		fmt.Printf("Date range:     %s\n", stats.DateRange)
@@ -463,11 +448,11 @@ func displayStats(entries []LogEntry, filterToday, filterWeek, filterMonth bool,
 	if len(stats.TopActivities) > 1 {
 		fmt.Printf("\nTop activities:\n")
 		for i, activity := range stats.TopActivities {
-			if i >= 5 { // Show top 5 in summary
+			if i >= 5 {
 				break
 			}
-			fmt.Printf("  %s (%d sessions, %s)\n",
-				activity.Tag, activity.Count, formatDuration(activity.Duration))
+			percentage := (float64(activity.Duration) / float64(stats.TotalTime)) * 100
+			fmt.Printf("  %d. %s (%d sessions, %s, %.1f%%)\n", i+1, activity.Tag, activity.Count, FormatDuration(activity.Duration), percentage)
 		}
 	}
 }

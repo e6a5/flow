@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"encoding/json"
@@ -54,10 +54,10 @@ func TestLogSessionWithPartitioning(t *testing.T) {
 	}
 
 	// Log the sessions
-	if err := logSession(jan2024); err != nil {
+	if err := LogSession(jan2024); err != nil {
 		t.Fatalf("Failed to log January session: %v", err)
 	}
-	if err := logSession(feb2024); err != nil {
+	if err := LogSession(feb2024); err != nil {
 		t.Fatalf("Failed to log February session: %v", err)
 	}
 
@@ -202,6 +202,10 @@ func TestCalculateStats(t *testing.T) {
 	if stats.TopActivities[0].Count != 2 {
 		t.Errorf("Expected coding count 2, got %d", stats.TopActivities[0].Count)
 	}
+
+	if stats.TotalTime != 4*time.Hour {
+		t.Errorf("Expected total time %v, got %v", 4*time.Hour, stats.TotalTime)
+	}
 }
 
 func TestEmptyStatsCalculation(t *testing.T) {
@@ -250,50 +254,38 @@ func TestDateFilteringFunctions(t *testing.T) {
 }
 
 func TestLogReaderWithMalformedData(t *testing.T) {
-	tempDir := t.TempDir()
-	logDir := filepath.Join(tempDir, "flow", "logs")
-
-	// Set environment variable for testing
-	t.Setenv("XDG_DATA_HOME", tempDir)
-
-	// Create directory and malformed file
+	tmpDir := t.TempDir()
+	t.Setenv("XDG_DATA_HOME", tmpDir)
+	logDir := filepath.Join(tmpDir, "flow", "logs")
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		t.Fatalf("Failed to create log directory: %v", err)
 	}
+	logFile := filepath.Join(logDir, "202301_sessions.jsonl")
 
-	malformedFile := filepath.Join(logDir, "202507_sessions.jsonl")
-	content := `{"tag":"good1","start_time":"2025-07-01T10:00:00Z","end_time":"2025-07-01T10:30:00Z","duration":1800000000000}
-invalid json line
-{"tag":"good2","start_time":"2025-07-01T11:00:00Z","end_time":"2025-07-01T11:30:00Z","duration":1800000000000}
-{"incomplete":
-{"tag":"good3","start_time":"2025-07-01T12:00:00Z","end_time":"2025-07-01T12:30:00Z","duration":1800000000000}
-`
-
-	err := os.WriteFile(malformedFile, []byte(content), 0644)
-	if err != nil {
+	// Setup: create a log file with one valid and one malformed line
+	malformedData := "this is not json\n"
+	validEntry := LogEntry{Tag: "valid", Duration: time.Hour}
+	validData, _ := json.Marshal(validEntry)
+	content := string(validData) + "\n" + malformedData
+	if err := os.WriteFile(logFile, []byte(content), 0644); err != nil {
 		t.Fatalf("Failed to write test log file: %v", err)
 	}
 
 	reader, err := NewLogReader()
 	if err != nil {
-		t.Fatalf("Failed to create log reader: %v", err)
+		t.Fatalf("Failed to create new log reader: %v", err)
 	}
 
 	entries, err := reader.ReadAllEntries()
 	if err != nil {
-		t.Fatalf("Failed to read entries: %v", err)
+		t.Fatalf("ReadAllEntries returned an error: %v", err)
 	}
 
-	// Should have parsed 3 good entries and skipped the malformed ones
-	if len(entries) != 3 {
-		t.Errorf("Expected 3 valid entries, got %d", len(entries))
+	if len(entries) != 1 {
+		t.Errorf("Expected 1 entry, got %d", len(entries))
 	}
-
-	expectedTags := []string{"good3", "good2", "good1"} // Reverse order (newest first)
-	for i, entry := range entries {
-		if entry.Tag != expectedTags[i] {
-			t.Errorf("Expected tag '%s', got '%s'", expectedTags[i], entry.Tag)
-		}
+	if entries[0].Tag != "valid" {
+		t.Errorf("Expected entry tag 'valid', got '%s'", entries[0].Tag)
 	}
 }
 

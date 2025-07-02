@@ -36,21 +36,9 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
+        generate_release_notes: true
         files: |
           dist/*.tar.gz
           dist/*.zip
-        body: |
-          ## What's Changed
-          
-          See [CHANGELOG.md](CHANGELOG.md) for details.
-          
-          ## Installation
-          
-          Download the appropriate binary for your platform and add it to your PATH.
-          
-          Or install with Go:
-          ```bash
-          go install github.com/e6a5/flow@${{ github.ref_name }}
-          ```
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }} 

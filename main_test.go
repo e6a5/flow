@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/e6a5/flow/core"
 )
 
 func TestFormatDuration(t *testing.T) {
@@ -53,7 +55,7 @@ func TestFormatDuration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := formatDuration(tt.duration)
+			result := core.FormatDuration(tt.duration)
 			if result != tt.expected {
 				t.Errorf("formatDuration(%v) = %q, want %q", tt.duration, result, tt.expected)
 			}
@@ -117,7 +119,7 @@ func TestSessionEnforcement(t *testing.T) {
 
 	tests := []struct {
 		name            string
-		existingSession *Session
+		existingSession *core.Session
 		newTag          string
 		shouldAllow     bool
 		expectedMessage string
@@ -131,7 +133,7 @@ func TestSessionEnforcement(t *testing.T) {
 		},
 		{
 			name: "existing active session",
-			existingSession: &Session{
+			existingSession: &core.Session{
 				Tag:       "existing work",
 				StartTime: time.Now().Add(-30 * time.Minute),
 				IsPaused:  false,
@@ -142,7 +144,7 @@ func TestSessionEnforcement(t *testing.T) {
 		},
 		{
 			name: "existing paused session",
-			existingSession: &Session{
+			existingSession: &core.Session{
 				Tag:         "existing work",
 				StartTime:   time.Now().Add(-30 * time.Minute),
 				PausedAt:    time.Now().Add(-10 * time.Minute),
@@ -158,12 +160,12 @@ func TestSessionEnforcement(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Clean up before each test
-			path, _ := getSessionPath()
+			path, _ := core.GetSessionPath()
 			_ = os.Remove(path)
 
 			// Set up existing session if provided
 			if tt.existingSession != nil {
-				err := saveSession(*tt.existingSession)
+				err := core.SaveSession(*tt.existingSession)
 				if err != nil {
 					t.Fatalf("Failed to save existing session: %v", err)
 				}
@@ -186,7 +188,7 @@ func TestSessionEnforcement(t *testing.T) {
 			}
 
 			// Clean up
-			path, _ = getSessionPath()
+			path, _ = core.GetSessionPath()
 			_ = os.Remove(path)
 		})
 	}
@@ -211,11 +213,11 @@ func parseTagFromArgs(args []string) string {
 }
 
 func canStartNewSession() (bool, string) {
-	if !sessionExists() {
+	if !core.SessionExists() {
 		return true, ""
 	}
 
-	session, err := loadSession()
+	session, err := core.LoadSession()
 	if err != nil {
 		return true, ""
 	}
@@ -234,32 +236,4 @@ func containsKeywords(text string, keywords []string) bool {
 		}
 	}
 	return true
-}
-
-// Test basic functions don't panic
-func TestBasicFunctions(t *testing.T) {
-	tests := []struct {
-		name string
-		fn   func()
-	}{
-		{
-			name: "showUsage",
-			fn:   showUsage,
-		},
-		{
-			name: "showVersion",
-			fn:   showVersion,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			defer func() {
-				if r := recover(); r != nil {
-					t.Errorf("%s panicked: %v", tt.name, r)
-				}
-			}()
-			tt.fn()
-		})
-	}
 }

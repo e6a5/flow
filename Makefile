@@ -6,15 +6,15 @@ COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 DATE ?= $(shell date +%Y-%m-%dT%H:%M:%S%z)
 
 # Build flags
-LDFLAGS = -ldflags "-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(DATE)"
+LDFLAGS = -ldflags "-X 'github.com/e6a5/flow/cmd.version=$(VERSION)' -X 'github.com/e6a5/flow/cmd.commit=$(COMMIT)' -X 'github.com/e6a5/flow/cmd.date=$(DATE)'"
 
 # Build the flow binary
 build:
-	go build $(LDFLAGS) -o flow ./...
+	go build $(LDFLAGS) -o flow .
 
 # Install flow to $GOPATH/bin
 install:
-	go install $(LDFLAGS)
+	go install $(LDFLAGS) .
 
 # Clean build artifacts
 clean:
@@ -34,14 +34,14 @@ lint:
 
 # Development: run with example
 dev:
-	go run $(LDFLAGS) ./... start --tag "dev test"
+	go run $(LDFLAGS) . start --tag "dev test"
 
 # Build for multiple platforms
 release:
 	mkdir -p dist
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-linux-amd64 ./...
-	GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o dist/flow-linux-arm64 ./...
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-darwin-amd64 ./...
-	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o dist/flow-darwin-arm64 ./...
-	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-windows-amd64.exe ./...
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-linux-amd64 .
+	GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o dist/flow-linux-arm64 .
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-darwin-amd64 .
+	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o dist/flow-darwin-arm64 .
+	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o dist/flow-windows-amd64.exe .
 	@echo "Built binaries for version $(VERSION)" 

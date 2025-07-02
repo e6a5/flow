@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"bytes"
@@ -71,7 +71,9 @@ func TestDisplayDashboardStats(t *testing.T) {
 
 			displayDashboardStats(tc.dailyTotals, now)
 
-			w.Close()
+			if err := w.Close(); err != nil {
+				t.Fatalf("failed to close writer: %v", err)
+			}
 			os.Stdout = oldStdout
 
 			var buf bytes.Buffer

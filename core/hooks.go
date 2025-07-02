@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"fmt"
@@ -7,10 +7,9 @@ import (
 	"path/filepath"
 )
 
-// runHook executes a script for a given event if it exists and is executable.
-// The session tag is passed as the first argument to the script.
-func runHook(eventName string, sessionTag string) {
-	hookPath, err := getHookPath(eventName)
+// RunHook executes a custom script for a given event
+func RunHook(event string, args ...string) {
+	hookPath, err := getHookScriptPath(event)
 	if err != nil {
 		// Silently fail if we can't even determine the hook path.
 		// This is a power-user feature and should not crash the main app.
@@ -25,15 +24,14 @@ func runHook(eventName string, sessionTag string) {
 	}
 
 	// Execute the hook script.
-	cmd := exec.Command(hookPath, sessionTag)
+	cmd := exec.Command(hookPath, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	_ = cmd.Run() // We run hooks on a best-effort basis. Ignore errors.
 }
 
-// getHookPath determines the path for a hook script based on the event name.
-// Hooks are expected to be in ~/.config/flow/hooks/.
-func getHookPath(eventName string) (string, error) {
+// getHookScriptPath finds the path for a given hook event
+func getHookScriptPath(event string) (string, error) {
 	configDir := os.Getenv("XDG_CONFIG_HOME")
 
 	if configDir == "" {
@@ -49,5 +47,5 @@ func getHookPath(eventName string) (string, error) {
 		configDir = filepath.Join(homeDir, ".config")
 	}
 
-	return filepath.Join(configDir, "flow", "hooks", eventName), nil
+	return filepath.Join(configDir, "flow", "hooks", event), nil
 }
