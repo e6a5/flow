@@ -8,13 +8,21 @@ import (
 // ANSI color codes for calm, minimal output
 const (
 	Reset = "\033[0m"
+	Bold  = "\033[1m"
 	Dim   = "\033[2m"
-	Blue  = "\033[34m"
 	Gray  = "\033[90m"
+
+	// High-contrast, 5-tier blue color scale for the dashboard
+	// Using 256-color ANSI codes for better terminal compatibility.
+	Color0 = "\033[38;5;250m" // Light Gray (for empty days)
+	Blue1  = "\033[38;5;117m" // Lightest Blue
+	Blue2  = "\033[38;5;75m"  // Light Blue
+	Blue3  = "\033[38;5;33m"  // Medium Blue
+	Blue4  = "\033[38;5;21m"  // Darkest Blue
 )
 
 func showUsage() {
-	fmt.Print(`🌊 Flow
+	fmt.Print(`🌊 Flow: A Terminal-Based Tool for Deep Work
 
 Protect your attention. Enter deep work.
 
@@ -26,6 +34,8 @@ USAGE:
   flow resume                        Resume paused session
   flow end                          End current session
   	flow log [--today|--week|--month|--stats|--all]  Show session history
+  flow dashboard                     Show a dashboard of your activity
+  flow export [--format csv|json]    Export session history
   flow completion [bash|zsh]         Output shell completion script
 
 EXAMPLES:
@@ -40,6 +50,8 @@ EXAMPLES:
   flow log --month              # This month's sessions
   flow log 2025-07              # Specific month (YYYY-MM)
   flow log --stats              # Show summary statistics
+  flow dashboard                # See your progress visually
+  flow export --format csv      # Export all sessions to CSV
 
 One session at a time. No tracking. Pure focus.
 

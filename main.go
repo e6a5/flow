@@ -33,6 +33,10 @@ func main() {
 		handleEnd()
 	case "log":
 		handleLog()
+	case "dashboard":
+		handleDashboard()
+	case "export":
+		handleExport()
 	case "completion":
 		handleCompletion()
 	case "--help", "-h":

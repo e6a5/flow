@@ -27,9 +27,10 @@ const bashCompletion = `
 _flow_completions() {
     COMPREPLY=()
     local cur="${COMP_WORDS[COMP_CWORD]}"
-    local commands="start status pause resume end log completion"
+    local commands="start status pause resume end log dashboard export completion"
     local shells="bash zsh"
     local log_flags="--today --week --month --stats --all"
+    local export_flags="--format --output"
 
     if [ "${COMP_CWORD}" -eq 1 ]; then
         COMPREPLY=( $(compgen -W "${commands}" -- "${cur}") )
@@ -37,6 +38,8 @@ _flow_completions() {
         COMPREPLY=( $(compgen -W "${shells}" -- "${cur}") )
     elif [ "${COMP_WORDS[1]}" = "log" ]; then
         COMPREPLY=( $(compgen -W "${log_flags}" -- "${cur}") )
+    elif [ "${COMP_WORDS[1]}" = "export" ]; then
+        COMPREPLY=( $(compgen -W "${export_flags}" -- "${cur}") )
     fi
 }
 complete -F _flow_completions flow
@@ -54,6 +57,8 @@ _flow() {
         'resume:Resume a paused session'
         'end:End the current session'
         'log:Show session history'
+        'dashboard:Show a dashboard of your activity'
+        'export:Export session data to CSV or JSON'
         'completion:Generate completion script'
     )
     _describe 'command' commands
@@ -77,6 +82,18 @@ _flow() {
                 '--all:Show all sessions'
             )
             _describe 'log options' log_flags
+            ;;
+        export)
+            local -a export_flags
+            export_flags=(
+                '--format:Specify export format (csv or json)'
+                '--output:Specify output file'
+                '--today:Export today'\''s sessions only'
+                '--week:Export this week'\''s sessions'
+                '--month:Export this month'\''s sessions'
+                '--all:Export all sessions'
+            )
+            _describe 'export options' export_flags
             ;;
     esac
 }

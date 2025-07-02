@@ -1,154 +1,127 @@
-# 🌊 Flow
+# 🌊 Flow: A Terminal-Based Tool for Deep Work
 
-> A Command-Line Tool for Deep Work
+**Flow is a minimalist command-line tool for focused, single-tasking work sessions. It protects your attention, helps you build a deep work habit, and provides powerful insights into your focus patterns—all without leaving your terminal.**
 
-Flow is a minimalist command-line tool designed to help you focus on single-tasking by creating a mindful boundary around your work. It emphasizes mindfulness and presence, not productivity metrics.
+![Flow Dashboard](assets/dashboard.png)
 
-## ⚡ Quick Start
+It's designed for developers, writers, and anyone who wants to build a more mindful and effective relationship with their work.
 
-### 1. Install
+## The Philosophy: Your Attention is Sacred
 
-```bash
-curl -sSL https://raw.githubusercontent.com/e6a5/flow/main/install.sh | bash
-```
+In a world of constant distraction, your ability to focus is a superpower. Flow is built on a simple idea: **one thing at a time**. It's not about complex productivity metrics or chasing a never-ending task list. It's about creating a clear, intentional boundary around your work, allowing you to engage deeply and mindfully.
 
-### 2. Run a Full Session Cycle
+Flow helps you answer a simple question: "What am I working on right now?" And by logging your completed sessions, it helps you reflect on a more important one: "How am I investing my attention?"
 
-```bash
-# Start a session to focus on a task
-flow start --tag "Drafting a proposal"
+## Features
 
-# Check your current status
-flow status
+- **Mindful Focus**: A single active session at a time to encourage deep, single-tasking work.
+- **Rich Dashboard**: A beautiful, GitHub-style contribution graph to visualize your focus history over the last year.
+- **Powerful Exports**: Export your work sessions to CSV or JSON for invoicing, analysis, or personal records.
+- **Privacy First**: Your data is yours. Everything is stored locally in plain text files. No cloud, no tracking.
+- **Shell Integration**: Seamlessly display your current focus session in your shell prompt (`bash` and `zsh` supported).
+- **Automation Hooks**: Trigger custom scripts on session events (`on_start`, `on_pause`, `on_end`).
 
-# Take a short break
-flow pause
-
-# Resume your work
-flow resume
-
-# End the session when you're done
-flow end
-
-# Review your completed sessions
-flow log
-```
-
-### 3. Enable Shell Integration (Optional)
-
-For ambient awareness in your shell prompt:
-
-```bash
-# For bash users
-echo 'eval "$(flow completion bash)"' >> ~/.bashrc
-
-# For zsh users  
-echo 'eval "$(flow completion zsh)"' >> ~/.zshrc
-```
-
-## 🌟 Key Features
-
-- **Mindful Focus**: Helps you maintain a single-tasking mindset with one active session at a time
-- **Session Management**: Start, pause, resume, and end sessions easily
-- **Session Logging**: Automatic tracking of completed sessions for reflection and insights
-- **Shell Integration**: Seamlessly integrates with your shell for ambient awareness
-- **Automation Hooks**: Customize workflows with session event hooks (`on_start`, `on_pause`, `on_resume`, `on_end`)
-- **Privacy First**: No tracking, no cloud, purely local with XDG-compliant storage
-- **Script Friendly**: Raw output mode for integration with other tools
-
-## 🌿 Philosophy
-
-Flow believes in creating a mindful boundary around your work. It's about protecting your attention and engaging deeply with one task at a time. The tool serves your consciousness, not metrics.
-
-## 💡 Commands
-
-| Command | Description | Examples |
-| ------- | ----------- | -------- |
-| `start [--tag "name"]` | Begin a deep work session | `flow start --tag "code review"` |
-| `status [--raw]` | Check the current session | `flow status` or `flow status --raw` |
-| `pause` | Take a mindful break | `flow pause` |
-| `resume` | Continue working | `flow resume` |
-| `end` | Complete the session | `flow end` |
-| `log [flags]` | View session history | `flow log --today --stats` |
-| `completion [bash\|zsh]` | Generate shell completions | `flow completion bash` |
-
-### 📊 Log Command Options
-
-| Flag | Description |
-| ---- | ----------- |
-| `--today` | Show only today's sessions |
-| `--week` | Show this week's sessions |
-| `--stats` | Display summary statistics |
-| `--all` | Show all sessions (no limit) |
-
-**Examples:**
-```bash
-flow log                    # Recent sessions (last 10)
-flow log --today            # Today's work only
-flow log --week --stats     # This week's statistics
-flow log --all              # Complete history
-```
-
-## 🔧 Installation and Usage
-
-### Quick Install (Recommended)
+## Installation
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/e6a5/flow/main/install.sh | bash
 ```
+*The installer will add the `flow` binary to `/usr/local/bin` and check for necessary dependencies.*
 
-### Go Install
+For other installation methods (Go, manual), see the [Installation Guide](docs/INSTALL.md).
 
-```bash
-go install github.com/e6a5/flow@latest
-```
+## Getting Started: A Typical Workflow
 
-### Download Binaries
+Flow is designed to be intuitive. Here's how a typical session works:
 
-Download pre-built binaries from the [releases page](https://github.com/e6a5/flow/releases).
+1.  **Start a session** when you're ready to focus. Give it a tag to describe your task.
+    ```bash
+    flow start --tag "Writing the first draft of the new feature spec"
+    ```
 
-### Build from Source
+2.  **Check your status** at any time.
+    ```bash
+    flow status
+    > 🌊 Deep work: Writing the first draft of the new feature spec (Active for 1h 15m)
+    ```
 
-```bash
-git clone https://github.com/e6a5/flow.git
-cd flow
-make build
-```
+3.  **Take a break** when you need one.
+    ```bash
+    flow pause
+    ```
+    Then, **resume** when you're ready to get back to it.
+    ```bash
+    flow resume
+    ```
 
-## 🎣 Automation Hooks
+4.  **End the session** when the work is complete. Your focus time is automatically logged.
+    ```bash
+    flow end
+    > ✨ Session complete: Writing the first draft of the new feature spec
+    > Total focus time: 2h 30m
+    ```
 
-Flow supports automation hooks that trigger on session events. Create executable scripts in `~/.config/flow/hooks/`:
+## Gain Insights from Your Work
 
-- `on_start` - Triggered when starting a session
-- `on_pause` - Triggered when pausing a session  
-- `on_resume` - Triggered when resuming a session
-- `on_end` - Triggered when ending a session
+Once you've logged a few sessions, you can use Flow's data tools to understand your work patterns.
 
-Each hook receives the session tag as its first argument.
+- **Visualize your consistency** with the dashboard. The color of each day represents your total focus time:
+  - **Lightest Blue**: 1 minute - 2 hours
+  - **Light Blue**: 2 - 4 hours
+  - **Medium Blue**: 4 - 6 hours
+  - **Darkest Blue**: More than 6 hours
+  ```bash
+  flow dashboard
+  ```
 
-Example hook (`~/.config/flow/hooks/on_start`):
-```bash
-#!/bin/bash
-echo "Starting work on: $1" | notify-send "Flow" 
-```
+- **Review your session history**:
+  ```bash
+  flow log --week --stats
+  ```
+- **Export your data for invoicing or analysis**:
+  ```bash
+  flow export --month 2023-10 --format csv --output "october-invoice.csv"
+  ```
 
-## 🛠️ Configuration
+## Full Command Reference
 
-Flow follows XDG Base Directory standards:
+### Core Session Commands
+| Command | Description |
+| ------- | ----------- |
+| `start [--tag "name"]` | Begin a deep work session. |
+| `status [--raw]` | Check the current session status. |
+| `pause` | Pause the active session. |
+| `resume` | Resume a paused session. |
+| `end` | Complete the session and log it. |
 
-- **Session data**: `$XDG_DATA_HOME/flow/session` (default: `~/.local/share/flow/session`)
-- **Session logs**: `$XDG_DATA_HOME/flow/logs/YYYYMM_sessions.jsonl` (default: `~/.local/share/flow/logs/202507_sessions.jsonl`)
-- **Hooks**: `$XDG_CONFIG_HOME/flow/hooks/` (default: `~/.config/flow/hooks/`)
-- **Custom session path**: Set `FLOW_SESSION_PATH` environment variable
-- **Custom log path**: Set `FLOW_LOG_PATH` environment variable
+### Data & Analysis Commands
+| Command | Description |
+| ------- | ----------- |
+| `log [flags]` | View completed session history. See `flow log --help` for flags. |
+| `dashboard` | Show a yearly contribution graph of your focus sessions. |
+| `export [flags]` | Export session data to CSV or JSON. See `flow export --help` for flags. |
+
+### Utility Commands
+| Command | Description |
+| ------- | ----------- |
+| `completion [bash\|zsh]` | Generate shell completion scripts. |
+
+## Customization
+
+You can extend Flow to fit your unique workflow using hooks and environment variables.
+
+- **Automation Hooks**: Trigger custom scripts on session events.
+- **Configuration**: Customize storage paths using environment variables.
+
+For detailed information, see the [Customization Guide](docs/CUSTOMIZATION.md).
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. This is a tool for mindful computing that serves consciousness.
+Flow is built for the community, and we welcome contributions! Whether it's a bug report, a feature request, or a pull request, we'd love to hear from you. Please see our [Contributing Guidelines](CONTRIBUTING.md) to get started.
 
 ## License
 
-[MIT License](LICENSE) - see the [LICENSE](LICENSE) file for details.
+Flow is open-source software licensed under the [MIT License](LICENSE).
 
 ---
 

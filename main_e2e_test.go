@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 var binaryPath string
@@ -202,4 +203,76 @@ func TestE2EHooks(t *testing.T) {
 	if err != nil {
 		t.Logf("Failed to end session during hook test cleanup (non-critical): %v", err)
 	}
+}
+
+func TestE2EDataCommands(t *testing.T) {
+	// --- Setup ---
+	tempDir := t.TempDir()
+	// Use XDG_DATA_HOME to control where logs are stored, which is more robust
+	// than relying on the HOME-based fallback.
+	logDir := filepath.Join(tempDir, "flow", "logs")
+	t.Setenv("XDG_DATA_HOME", tempDir)
+	defer t.Setenv("XDG_DATA_HOME", "")
+
+	// Create a mock log file with a known entry
+	err := os.MkdirAll(logDir, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create log directory: %v", err)
+	}
+
+	now := time.Now()
+	logFileName := fmt.Sprintf("%s_sessions.jsonl", now.Format("200601"))
+	logFilePath := filepath.Join(logDir, logFileName)
+	// Note: duration is in nanoseconds for JSON
+	logContent := `{"tag":"e2e data test","start_time":"2023-10-27T09:00:00Z","end_time":"2023-10-27T10:00:00Z","duration":3600000000000,"total_paused":0}` + "\n"
+	err = os.WriteFile(logFilePath, []byte(logContent), 0644)
+	if err != nil {
+		t.Fatalf("Failed to write mock log file: %v", err)
+	}
+
+	// --- Dashboard Test ---
+	t.Run("dashboard", func(t *testing.T) {
+		stdout, stderr, err := runFlowCommand(t, "dashboard")
+		if err != nil {
+			t.Fatalf("Expected 'dashboard' to succeed, but got error: %v\nStderr: %s", err, stderr)
+		}
+
+		if !strings.Contains(stdout, "Your Deep Work History") {
+			t.Error("Dashboard output should contain title 'Your Deep Work History'")
+		}
+		if !strings.Contains(stdout, "Yearly Stats") {
+			t.Error("Dashboard output should contain 'Yearly Stats'")
+		}
+	})
+
+	// --- Export Test ---
+	t.Run("export", func(t *testing.T) {
+		// Test CSV export to stdout
+		stdout, stderr, err := runFlowCommand(t, "export", "--all")
+		if err != nil {
+			t.Fatalf("Expected 'export' to succeed, but got error: %v\nStderr: %s", err, stderr)
+		}
+		if !strings.Contains(stdout, "tag,start_time,end_time") {
+			t.Error("Exported CSV should contain the correct header")
+		}
+		if !strings.Contains(stdout, "e2e data test") {
+			t.Error("Exported CSV should contain the test entry tag")
+		}
+
+		// Test JSON export to a file
+		outputFilePath := filepath.Join(tempDir, "export.json")
+		_, stderr, err = runFlowCommand(t, "export", "--all", "--format=json", "--output="+outputFilePath)
+		if err != nil {
+			t.Fatalf("Expected 'export' to file to succeed, but got error: %v\nStderr: %s", err, stderr)
+		}
+
+		// Verify file content
+		content, err := os.ReadFile(outputFilePath)
+		if err != nil {
+			t.Fatalf("Failed to read exported JSON file: %v", err)
+		}
+		if !strings.Contains(string(content), `"tag": "e2e data test"`) {
+			t.Errorf("Exported JSON file content is incorrect. Got:\n%s", string(content))
+		}
+	})
 }
