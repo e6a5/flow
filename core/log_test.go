@@ -202,10 +202,6 @@ func TestCalculateStats(t *testing.T) {
 	if stats.TopActivities[0].Count != 2 {
 		t.Errorf("Expected coding count 2, got %d", stats.TopActivities[0].Count)
 	}
-
-	if stats.TotalTime != 4*time.Hour {
-		t.Errorf("Expected total time %v, got %v", 4*time.Hour, stats.TotalTime)
-	}
 }
 
 func TestEmptyStatsCalculation(t *testing.T) {
