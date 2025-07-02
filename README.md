@@ -1,16 +1,35 @@
 # 🌊 Flow: A Terminal-Based Tool for Deep Work
 
+[![CI](https://github.com/e6a5/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/e6a5/flow/actions/workflows/ci.yml)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/e6a5/flow)](https://github.com/e6a5/flow/releases/latest)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/e6a5/flow)](https://go.dev/)
+[![GitHub license](https://img.shields.io/github/license/e6a5/flow)](https://github.com/e6a5/flow/blob/main/LICENSE)
+
 **Flow is a minimalist command-line tool for focused, single-tasking work sessions. It protects your attention, helps you build a deep work habit, and provides powerful insights into your focus patterns—all without leaving your terminal.**
 
 ![Flow Dashboard](assets/dashboard.png)
 
 It's designed for developers, writers, and anyone who wants to build a more mindful and effective relationship with their work.
 
+---
+
+## Table of Contents
+
+- [The Philosophy](#the-philosophy-your-attention-is-sacred)
+- [Features](#features)
+- [Installation](#installation)
+- [Getting Started](#getting-started-a-typical-workflow)
+- [Commands](#full-command-reference)
+- [Customization](#customization)
+- [Contributing](#contributing)
+
+---
+
 ## The Philosophy: Your Attention is Sacred
 
-In a world of constant distraction, your ability to focus is a superpower. Flow is built on a simple idea: **one thing at a time**. It's not about complex productivity metrics or chasing a never-ending task list. It's about creating a clear, intentional boundary around your work, allowing you to engage deeply and mindfully.
-
-Flow helps you answer a simple question: "What am I working on right now?" And by logging your completed sessions, it helps you reflect on a more important one: "How am I investing my attention?"
+> In a world of constant distraction, your ability to focus is a superpower. Flow is built on a simple idea: **one thing at a time**. It's not about complex productivity metrics or chasing a never-ending task list. It's about creating a clear, intentional boundary around your work, allowing you to engage deeply and mindfully.
+>
+> Flow helps you answer a simple question: "What am I working on right now?" And by logging your completed sessions, it helps you reflect on a more important one: "How am I investing my attention?"
 
 ## Features
 
