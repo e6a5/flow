@@ -76,6 +76,20 @@ func (lr *LogReader) getRelevantLogFiles(filterToday, filterWeek, filterMonth bo
 			if fileDate.Year() == targetMonth[0].Year() && fileDate.Month() == targetMonth[0].Month() {
 				relevantFiles = append(relevantFiles, file)
 			}
+		} else if filterToday {
+			// For today filter, include files from current month (filtering by actual date happens later)
+			if fileDate.Year() == now.Year() && fileDate.Month() == now.Month() {
+				relevantFiles = append(relevantFiles, file)
+			}
+		} else if filterWeek {
+			// For week filter, include files from current and potentially previous month
+			currentMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+			previousMonth := currentMonth.AddDate(0, -1, 0)
+
+			if (fileDate.Year() == currentMonth.Year() && fileDate.Month() == currentMonth.Month()) ||
+				(fileDate.Year() == previousMonth.Year() && fileDate.Month() == previousMonth.Month()) {
+				relevantFiles = append(relevantFiles, file)
+			}
 		} else if filterMonth {
 			// Current month
 			if fileDate.Year() == now.Year() && fileDate.Month() == now.Month() {
@@ -98,7 +112,31 @@ func (lr *LogReader) getRelevantLogFiles(filterToday, filterWeek, filterMonth bo
 
 // ReadRecentEntries reads the most recent entries efficiently
 func (lr *LogReader) ReadRecentEntries(limit int, filterToday, filterWeek bool) ([]LogEntry, error) {
-	return lr.readEntries(limit, filterToday, filterWeek, false, nil)
+	entries, err := lr.readEntries(limit, filterToday, filterWeek, false, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if filterToday || filterWeek {
+		now := time.Now()
+		filteredEntries := []LogEntry{}
+		for _, entry := range entries {
+			if filterToday && !isToday(entry.EndTime, now) {
+				continue
+			}
+			if filterWeek && !isThisWeek(entry.EndTime, now) {
+				continue
+			}
+			filteredEntries = append(filteredEntries, entry)
+		}
+		// Respect the original limit after filtering
+		if limit > 0 && len(filteredEntries) > limit {
+			return filteredEntries[:limit], nil
+		}
+		return filteredEntries, nil
+	}
+
+	return entries, nil
 }
 
 // ReadMonthEntries reads entries from a specific month
@@ -124,6 +162,7 @@ func (lr *LogReader) readEntries(limit int, filterToday, filterWeek, readAll boo
 	if targetMonth != nil {
 		files, err = lr.getRelevantLogFiles(false, false, false, *targetMonth)
 	} else {
+		// Pass the filters to getRelevantLogFiles so it can select the right month files
 		files, err = lr.getRelevantLogFiles(filterToday, filterWeek, false)
 	}
 
@@ -137,7 +176,6 @@ func (lr *LogReader) readEntries(limit int, filterToday, filterWeek, readAll boo
 
 	var allEntries []LogEntry
 	totalLines := 0
-	now := time.Now()
 
 	// Sort files in reverse order (newest first) for better performance with limits
 	sort.Slice(files, func(i, j int) bool {
@@ -145,7 +183,7 @@ func (lr *LogReader) readEntries(limit int, filterToday, filterWeek, readAll boo
 	})
 
 	for _, file := range files {
-		fileEntries, lines, err := lr.readSingleFile(file, filterToday, filterWeek, now)
+		fileEntries, lines, err := lr.readSingleFile(file)
 		if err != nil {
 			// Log error but continue with other files
 			fmt.Fprintf(os.Stderr, "Warning: error reading %s: %v\n", file, err)
@@ -180,7 +218,7 @@ func (lr *LogReader) readEntries(limit int, filterToday, filterWeek, readAll boo
 }
 
 // readSingleFile reads entries from a single log file
-func (lr *LogReader) readSingleFile(filePath string, filterToday, filterWeek bool, now time.Time) (entries []LogEntry, lineCount int, err error) {
+func (lr *LogReader) readSingleFile(filePath string) (entries []LogEntry, lineCount int, err error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, 0, err
@@ -203,14 +241,6 @@ func (lr *LogReader) readSingleFile(filePath string, filterToday, filterWeek boo
 		var entry LogEntry
 		if err := json.Unmarshal([]byte(line), &entry); err != nil {
 			// Skip malformed lines but continue processing
-			continue
-		}
-
-		// Apply date filters
-		if filterToday && !isToday(entry.EndTime, now) {
-			continue
-		}
-		if filterWeek && !isThisWeek(entry.EndTime, now) {
 			continue
 		}
 
@@ -302,61 +332,58 @@ func CalculateStats(entries []LogEntry) LogStats {
 }
 
 // HandleLog handles the log command with improved performance
-func HandleLog() {
+func HandleLog(showStats, filterToday, filterWeek, filterMonth, showAll bool, monthStr string) {
 	reader, err := NewLogReader()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating log reader: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Parse command line flags
-	showStats := false
-	filterToday := false
-	filterWeek := false
-	filterMonth := false
-	maxEntries := defaultMaxEntries
-	showAll := false
 	var targetMonth *time.Time
-
-	for i := 2; i < len(os.Args); i++ {
-		switch os.Args[i] {
-		case "--stats":
-			showStats = true
-		case "--today":
-			filterToday = true
-		case "--week":
-			filterWeek = true
-		case "--month":
-			filterMonth = true
-		case "--all":
-			showAll = true
-		default:
-			// Check if it's a month specification like "2025-07"
-			if strings.Contains(os.Args[i], "-") && len(os.Args[i]) == 7 {
-				if month, err := time.Parse("2006-01", os.Args[i]); err == nil {
-					targetMonth = &month
-				}
+	if monthStr != "" {
+		if month, err := time.Parse("2006-01", monthStr); err == nil {
+			targetMonth = &month
+		} else {
+			// Handle case where monthStr is not a valid date, e.g. from args
+			if t, err := time.Parse("2006-01-02", monthStr); err == nil {
+				targetMonth = &t
+			} else {
+				fmt.Fprintf(os.Stderr, "Error: Invalid month format '%s'. Please use YYYY-MM.\n", monthStr)
+				os.Exit(1)
 			}
 		}
 	}
 
 	var entries []LogEntry
+	maxEntries := defaultMaxEntries // Use default unless --all is specified
 
 	if targetMonth != nil {
 		entries, err = reader.ReadMonthEntries(*targetMonth, maxEntries)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error loading month entries: %v\n", err)
-			os.Exit(1)
-		}
 	} else if showAll {
-		entries, err = reader.ReadAllEntries()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error loading all log entries: %v\n", err)
-			os.Exit(1)
+		var allEntries []LogEntry
+		allEntries, err = reader.ReadAllEntries()
+		if err == nil && (filterToday || filterWeek || filterMonth) {
+			// If --all is combined with filters, apply them after loading
+			now := time.Now()
+			entries = []LogEntry{} // Reset entries to fill with filtered results
+			for _, entry := range allEntries {
+				if filterToday && !isToday(entry.EndTime, now) {
+					continue
+				}
+				if filterWeek && !isThisWeek(entry.EndTime, now) {
+					continue
+				}
+				if filterMonth && !(entry.EndTime.Year() == now.Year() && entry.EndTime.Month() == now.Month()) {
+					continue
+				}
+				entries = append(entries, entry)
+			}
+		} else {
+			entries = allEntries
 		}
 	} else {
-		// Default: show recent entries
-		entries, err = reader.ReadRecentEntries(defaultMaxEntries, false, false)
+		// Default path for recent entries, passing filters
+		entries, err = reader.ReadRecentEntries(maxEntries, filterToday, filterWeek)
 	}
 
 	if err != nil {
@@ -465,13 +492,14 @@ func isToday(t, now time.Time) bool {
 }
 
 func isThisWeek(t, now time.Time) bool {
-	// Get start of current week (Monday)
-	weekday := int(now.Weekday())
-	if weekday == 0 { // Sunday
-		weekday = 7
-	}
-	weekStart := now.AddDate(0, 0, -(weekday - 1))
+	// Get start of current week (Sunday)
+	weekday := int(now.Weekday()) // Sunday = 0, Monday = 1, etc.
+	weekStart := now.AddDate(0, 0, -weekday)
 	weekStart = time.Date(weekStart.Year(), weekStart.Month(), weekStart.Day(), 0, 0, 0, 0, weekStart.Location())
 
-	return t.After(weekStart) || t.Equal(weekStart)
+	// Get end of current week (Saturday)
+	weekEnd := weekStart.AddDate(0, 0, 6)
+	weekEnd = time.Date(weekEnd.Year(), weekEnd.Month(), weekEnd.Day(), 23, 59, 59, 999999999, weekEnd.Location())
+
+	return (t.After(weekStart) || t.Equal(weekStart)) && (t.Before(weekEnd) || t.Equal(weekEnd))
 }

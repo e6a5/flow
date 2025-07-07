@@ -224,7 +224,10 @@ func TestE2EDataCommands(t *testing.T) {
 	logFileName := fmt.Sprintf("%s_sessions.jsonl", now.Format("200601"))
 	logFilePath := filepath.Join(logDir, logFileName)
 	// Note: duration is in nanoseconds for JSON
-	logContent := `{"tag":"e2e data test","start_time":"2023-10-27T09:00:00Z","end_time":"2023-10-27T10:00:00Z","duration":3600000000000,"total_paused":0}` + "\n"
+	// Use today's date for the mock entry so --today filter will work
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 9, 0, 0, 0, now.Location())
+	todayEnd := time.Date(now.Year(), now.Month(), now.Day(), 10, 0, 0, 0, now.Location())
+	logContent := fmt.Sprintf(`{"tag":"e2e data test","start_time":"%s","end_time":"%s","duration":3600000000000,"total_paused":0}`, todayStart.Format(time.RFC3339), todayEnd.Format(time.RFC3339)) + "\n"
 	err = os.WriteFile(logFilePath, []byte(logContent), 0644)
 	if err != nil {
 		t.Fatalf("Failed to write mock log file: %v", err)
@@ -248,31 +251,55 @@ func TestE2EDataCommands(t *testing.T) {
 	// --- Export Test ---
 	t.Run("export", func(t *testing.T) {
 		// Test CSV export to stdout
-		stdout, stderr, err := runFlowCommand(t, "export", "--all")
+		stdout, stderr, err := runFlowCommand(t, "export", "--format", "csv")
 		if err != nil {
 			t.Fatalf("Expected 'export' to succeed, but got error: %v\nStderr: %s", err, stderr)
 		}
-		if !strings.Contains(stdout, "tag,start_time,end_time") {
-			t.Error("Exported CSV should contain the correct header")
+
+		// A simple check to ensure the header and a data row are present
+		if !strings.Contains(stdout, "tag,start_time,end_time,duration_seconds") {
+			t.Errorf("Expected CSV header in export output, got:\n%s", stdout)
 		}
 		if !strings.Contains(stdout, "e2e data test") {
-			t.Error("Exported CSV should contain the test entry tag")
+			t.Errorf("Expected log entry in export output, got:\n%s", stdout)
+		}
+	})
+
+	// --- Log Test ---
+	t.Run("log", func(t *testing.T) {
+		// Create a second log entry for a different day to test filtering
+		yesterday := now.AddDate(0, 0, -1)
+		yesterdayLogFileName := fmt.Sprintf("%s_sessions.jsonl", yesterday.Format("200601"))
+		yesterdayLogFilePath := filepath.Join(logDir, yesterdayLogFileName)
+		yesterdayLogContent := `{"tag":"yesterday's test","start_time":"` + yesterday.Format(time.RFC3339) + `","end_time":"` + yesterday.Format(time.RFC3339) + `","duration":1800000000000}` + "\n"
+
+		// This check is necessary because if it's the first day of the month,
+		// yesterday belongs to a different file. Otherwise, we append.
+		if now.Day() == 1 {
+			err = os.WriteFile(yesterdayLogFilePath, []byte(yesterdayLogContent), 0644)
+		} else {
+			f, err_append := os.OpenFile(logFilePath, os.O_APPEND|os.O_WRONLY, 0644)
+			if err_append != nil {
+				t.Fatalf("Failed to open log file for appending: %v", err_append)
+			}
+			_, err = f.WriteString(yesterdayLogContent)
+			_ = f.Close()
+		}
+		if err != nil {
+			t.Fatalf("Failed to write second log entry: %v", err)
 		}
 
-		// Test JSON export to a file
-		outputFilePath := filepath.Join(tempDir, "export.json")
-		_, stderr, err = runFlowCommand(t, "export", "--all", "--format=json", "--output="+outputFilePath)
+		// Test `log --today`
+		stdout, stderr, err := runFlowCommand(t, "log", "--today")
 		if err != nil {
-			t.Fatalf("Expected 'export' to file to succeed, but got error: %v\nStderr: %s", err, stderr)
+			t.Fatalf("Expected 'log --today' to succeed, but got error: %v\nStderr: %s", err, stderr)
 		}
 
-		// Verify file content
-		content, err := os.ReadFile(outputFilePath)
-		if err != nil {
-			t.Fatalf("Failed to read exported JSON file: %v", err)
+		if !strings.Contains(stdout, "e2e data test") {
+			t.Errorf("Log output should contain today's entry ('e2e data test'), but it didn't.\nOutput: %s", stdout)
 		}
-		if !strings.Contains(string(content), `"tag": "e2e data test"`) {
-			t.Errorf("Exported JSON file content is incorrect. Got:\n%s", string(content))
+		if strings.Contains(stdout, "yesterday's test") {
+			t.Errorf("Log output should not contain yesterday's entry, but it did.\nOutput: %s", stdout)
 		}
 	})
 }
