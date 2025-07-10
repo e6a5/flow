@@ -2,7 +2,10 @@ module github.com/e6a5/flow
 
 go 1.23.0
 
-require github.com/spf13/cobra v1.9.1
+require (
+	github.com/goccy/go-yaml v1.18.0
+	github.com/spf13/cobra v1.9.1
+)
 
 require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
