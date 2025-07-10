@@ -6,10 +6,17 @@ on:
     # We only want this to run on pushes to the main branch.
     branches:
       - main
+  # Also trigger on pull requests for better tracking
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
 
 jobs:
   update_release_draft:
     runs-on: ubuntu-latest
+    # Add explicit permissions for creating releases
+    permissions:
+      contents: write
+      pull-requests: read
     steps:
       # Drafts the next release by adding new changes from merged pull requests.
       - uses: release-drafter/release-drafter@v6
