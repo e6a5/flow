@@ -24,11 +24,26 @@ We use GitHub to host code, to track issues and feature requests, as well as acc
 
 ### Pull Requests
 
-1. Fork the repo and create your branch from `main`
-2. If you've added code that should be tested, add tests
-3. Ensure the test suite passes with `make test`
-4. Make sure your code is formatted with `make fmt`
-5. Issue that pull request!
+We actively welcome your pull requests.
+
+1.  Fork the repo and create your branch from `main`.
+2.  If you've added code that should be tested, add tests.
+3.  Ensure the test suite passes with `make test`.
+4.  Make sure your code is formatted with `make fmt`.
+5.  Title your Pull Request using the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format. This helps us automate our release notes. For example:
+    - `feat: Add a new command for exporting data`
+    - `fix: Correctly handle paused session state`
+    - `docs: Update the README with new instructions`
+6.  Add a label to your Pull Request that matches the type of change. This is used to categorize the change in our release notes. The available labels are:
+    - `feature` / `enhancement`
+    - `bug` / `fix`
+    - `documentation` / `docs`
+    - `chore` / `refactor` / `ci`
+7.  Issue that pull request!
+
+### Release Process (for maintainers)
+
+This project uses `release-drafter` to automate the creation of release notes.
 
 ### Development Setup
 
@@ -81,4 +96,4 @@ By contributing, you agree that your contributions will be licensed under its MI
 
 ## Questions?
 
-Feel free to open an issue with the `question` label if you have any questions about contributing. 
+Feel free to open an issue with the `question` label if you have any questions about contributing.

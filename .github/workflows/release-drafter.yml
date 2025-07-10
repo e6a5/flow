@@ -1,0 +1,22 @@
+# .github/workflows/release-drafter.yml
+name: Release Drafter
+
+on:
+  push:
+    # We only want this to run on pushes to the main branch.
+    branches:
+      - main
+
+jobs:
+  update_release_draft:
+    runs-on: ubuntu-latest
+    steps:
+      # Drafts the next release by adding new changes from merged pull requests.
+      - uses: release-drafter/release-drafter@v6
+        with:
+          # You can find the config file in .github/release-drafter.yml
+          config-name: release-drafter.yml
+        env:
+          # This token is provided by GitHub Actions.
+          # It's required for the action to create and update the draft release.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
