@@ -117,8 +117,9 @@ watch:
 
 	cfg, err := LoadConfig()
 	if err != nil {
-		// This is not a fatal error, as we expect parsing to be lenient.
-		// The config should fall back to the default value.
+		// We don't expect an error from LoadConfig itself, as it should
+		// gracefully handle a parsing error for a single field.
+		t.Fatalf("LoadConfig() returned an unexpected error: %v", err)
 	}
 
 	if cfg.Watch.RemindAfterIdle == 0 {

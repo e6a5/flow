@@ -42,5 +42,9 @@ dedicated terminal tab.`,
 func init() {
 	rootCmd.AddCommand(watchCmd)
 	watchCmd.Flags().Bool("_test_run_once", false, "Run the watch loop only once for testing.")
-	watchCmd.Flags().MarkHidden("_test_run_once")
+	if err := watchCmd.Flags().MarkHidden("_test_run_once"); err != nil {
+		// This is a developer error, not a user error.
+		// If we can't hide a flag we just defined, something is fundamentally wrong.
+		panic(err)
+	}
 }

@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -19,7 +20,11 @@ func captureStderr(f func()) string {
 
 	w.Close()
 	var buf bytes.Buffer
-	io.Copy(&buf, r)
+	if _, err := io.Copy(&buf, r); err != nil {
+		// In a test context, if we can't copy the buffer, something is
+		// very wrong, and we should fail the test.
+		panic(fmt.Sprintf("failed to copy stderr buffer: %v", err))
+	}
 	os.Stderr = oldStderr
 
 	return buf.String()
