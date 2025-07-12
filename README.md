@@ -11,14 +11,17 @@
 
 ---
 
-## Why Flow?
+## The Flow Philosophy
 
-| `flow` is... | Other tools are often... |
-| :--- | :--- |
-| **A Mindful Habit-Builder** | **A Passive Time-Tracker** |
-| **Terminal-Native** | **A Web or GUI Application** |
-| **Private and Local by Default** | **Cloud-Based and Account-Driven** |
-| **Hackable and Composable** | **A Closed System** |
+Flow is built on a few core principles that guide its design and purpose.
+
+*   **Mindful Focus, Not Just Time Tracking.** Flow isn't about logging hours for a timesheet. It's about creating a ritual around deep work, helping you build the habit of single-tasking.
+
+*   **Your Terminal is Your Sanctuary.** Deep work happens when you eliminate distractions. Flow lives in the command line, your most focused environment, preventing the context-switching required by GUI apps.
+
+*   **Your Data is Yours. Period.** Flow is private by default. It works offline, requires no account, and stores all your data in simple, local text files. You have complete control.
+
+*   **Compose Your Perfect Workflow.** Flow embraces the Unix philosophy. It's a simple, powerful tool that can be scripted and combined with others. Use its hooks to integrate with your existing setup.
 
 ---
 
