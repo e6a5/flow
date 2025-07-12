@@ -36,12 +36,23 @@ If a session is already active, 'start' will show you the status instead.`,
 		}
 
 		tag, _ := cmd.Flags().GetString("tag")
+		targetStr, _ := cmd.Flags().GetString("target")
+		var targetDuration time.Duration
+		if targetStr != "" {
+			var err error
+			targetDuration, err = time.ParseDuration(targetStr)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: Invalid duration format for --target: %v\n", err)
+				os.Exit(1)
+			}
+		}
 
 		// Create new session
 		session := core.Session{
-			Tag:       tag,
-			StartTime: time.Now(),
-			IsPaused:  false,
+			Tag:            tag,
+			StartTime:      time.Now(),
+			IsPaused:       false,
+			TargetDuration: targetDuration,
 		}
 
 		if err := core.SaveSession(session); err != nil {
@@ -64,4 +75,5 @@ If a session is already active, 'start' will show you the status instead.`,
 func init() {
 	rootCmd.AddCommand(startCmd)
 	startCmd.Flags().StringP("tag", "t", "Deep Work", "A description of the work session")
+	startCmd.Flags().String("target", "", "Set a target duration for the session (e.g., '1h30m', '2h')")
 }

@@ -5,7 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2025-07-10
+## [1.2.0] - 2025-07-12
+
+### Added
+
+- **Session Targets**: Set a duration goal for your work session with `flow start --target 2h`. The `status` command will now display your progress and remaining time.
+- **Daily Goals**: Set and track a daily focus goal with the new `flow goal` command. Use `flow goal --set 4h` to define your target and `flow goal` to view your progress.
+- **Recent Sessions Summary**: Get a quick summary of today's completed sessions with the new `flow recent` command.
+- **Productivity Insights**: Analyze your work patterns with the new `flow insights` command, which shows your busiest day, average session length, and more.
+- **System Doctor**: Diagnose and troubleshoot your setup with the new `flow doctor` command to check for common configuration and data issues.
+
+### Changed
+
+- The `flow status` command now provides more detailed output for active sessions that have a target duration.
+- The `flow pause` command output has been updated for better clarity.
+
+### Fixed
+
+- Corrected a test in the end-to-end suite that was failing due to updated command output, making the test suite more robust.
+
+## [1.1.2] - 2025-07-10
 
 ### Added
 

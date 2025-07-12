@@ -15,18 +15,18 @@ var pauseCmd = &cobra.Command{
 	Long:  `Pauses the currently active deep work session, freezing the timer.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if !core.SessionExists() {
-			fmt.Printf("🌊 No active session to pause.\n")
+			fmt.Println("No active session to pause. Use 'flow start' to begin.")
 			return
 		}
 
 		session, err := core.LoadSession()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading session: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Error loading session: %v\n", err)
 			os.Exit(1)
 		}
 
 		if session.IsPaused {
-			fmt.Printf("⏸️  Session already paused: %s\n", session.Tag)
+			fmt.Printf("Session '%s' is already paused.\n", session.Tag)
 			return
 		}
 
@@ -38,9 +38,7 @@ var pauseCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		duration := time.Since(session.StartTime) - session.TotalPaused
-		fmt.Printf("⏸️  Paused: %s\n", session.Tag)
-		fmt.Printf("Worked for %s. Use 'flow resume' when ready.\n", core.FormatDuration(duration))
+		fmt.Printf("⏸️  Paused session: %s\n", session.Tag)
 		core.RunHook("on_pause", session.Tag)
 	},
 }
