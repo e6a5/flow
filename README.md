@@ -5,41 +5,56 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/e6a5/flow)](https://go.dev/)
 [![GitHub license](https://img.shields.io/github/license/e6a5/flow)](https://github.com/e6a5/flow/blob/main/LICENSE)
 
-**Flow is a minimalist command-line tool for focused, single-tasking work sessions. It protects your attention, helps you build a deep work habit, and provides powerful insights into your focus patterns—all without leaving your terminal.**
+**In a world of constant distraction, your attention is a superpower. Flow is a minimalist command-line tool that helps you protect it. It's for developers, writers, and anyone who wants to build a deep work habit without leaving the terminal.**
 
 ![Flow Dashboard](assets/dashboard.png)
 
-It's designed for developers, writers, and anyone who wants to build a more mindful and effective relationship with their work.
+---
+
+## The Flow Philosophy
+
+Flow is built on a few core principles that guide its design and purpose.
+
+*   **Mindful Focus, Not Just Time Tracking.** Flow isn't about logging hours for a timesheet. It's about creating a ritual around deep work, helping you build the habit of single-tasking.
+
+*   **Your Terminal is Your Sanctuary.** Deep work happens when you eliminate distractions. Flow lives in the command line, your most focused environment, preventing the context-switching required by GUI apps.
+
+*   **Your Data is Yours. Period.** Flow is private by default. It works offline, requires no account, and stores all your data in simple, local text files. You have complete control.
+
+*   **Compose Your Perfect Workflow.** Flow embraces the Unix philosophy. It's a simple, powerful tool that can be scripted and combined with others. Use its hooks to integrate with your existing setup.
 
 ---
 
-## Table of Contents
+## A Typical Workflow
 
-- [The Philosophy](#the-philosophy-your-attention-is-sacred)
-- [Features](#features)
-- [Installation](#installation)
-- [Getting Started](#getting-started-a-typical-workflow)
-- [Commands](#full-command-reference)
-- [Customization](#customization)
-- [Contributing](#contributing)
+Flow is designed to be intuitive. Here's how a typical session works:
 
+1.  **Start a session** when you're ready to focus. Give it a tag and a target duration.
+
+    ```bash
+    flow start --tag "Writing the first draft" --target 2h
+    ```
+
+2.  **Check your status** at any time to see your progress.
+
+    ```bash
+    flow status
+    > 🌊 Deep work: Writing the first draft (Active for 45m) / 2h 0m (1h 15m remaining)
+    ```
+
+3.  **End the session** when the work is complete. Your focus time is automatically logged.
+
+    ```bash
+    flow end
+    > ✨ Session complete: Writing the first draft
+    > Total focus time: 2h 5m
+    ```
+4. **Review your day** and find your patterns.
+    ```bash
+    flow recent
+    flow insights
+    ```
 ---
-
-## The Philosophy: Your Attention is Sacred
-
-> In a world of constant distraction, your ability to focus is a superpower. Flow is built on a simple idea: **one thing at a time**. It's not about complex productivity metrics or chasing a never-ending task list. It's about creating a clear, intentional boundary around your work, allowing you to engage deeply and mindfully.
->
-> Flow helps you answer a simple question: "What am I working on right now?" And by logging your completed sessions, it helps you reflect on a more important one: "How am I investing my attention?"
-
-## Features
-
-- **Mindful Focus**: A single active session at a time to encourage deep, single-tasking work.
-- **Rich Dashboard**: A beautiful, GitHub-style contribution graph to visualize your focus history over the last year.
-- **Powerful Exports**: Export your work sessions to CSV or JSON for invoicing, analysis, or personal records.
-- **Privacy First**: Your data is yours. Everything is stored locally in plain text files. No cloud, no tracking.
-- **Shell Integration**: Seamlessly display your current focus session in your shell prompt (`bash` and `zsh` supported).
-- **Automation Hooks**: Trigger custom scripts on session events (`on_start`, `on_pause`, `on_end`).
-- **Configurable Watcher**: Customize the reminder timings for the `watch` command to fit your personal workflow.
 
 ## Installation
 
@@ -51,98 +66,94 @@ _The installer will add the `flow` binary to `/usr/local/bin` and check for nece
 
 For other installation methods (Go, manual), see the [Installation Guide](docs/INSTALL.md).
 
-## Getting Started: A Typical Workflow
+## Table of Contents
 
-Flow is designed to be intuitive. Here's how a typical session works:
+- [Goals and Insights: Understand Your Work](#goals-and-insights-understand-your-work)
+- [Full Command Reference](#full-command-reference)
+- [Customization](#customization)
+- [Contributing](#contributing)
 
-1.  **Start a session** when you're ready to focus. Give it a tag to describe your task.
+---
 
-    ```bash
-    flow start --tag "Writing the first draft of the new feature spec"
-    ```
+## Goals and Insights: Understand Your Work
 
-2.  **Check your status** at any time.
+Flow is more than a timer; it's a tool for building habits. Once you've logged a few sessions, you can use its data tools to understand and improve your work patterns.
 
-    ```bash
-    flow status
-    > 🌊 Deep work: Writing the first draft of the new feature spec (Active for 1h 15m)
-    ```
+- **Set a daily goal** to build consistency:
+  ```bash
+  flow goal --set 4h
+  ```
+  Check your progress at any time:
+  ```bash
+  flow goal
+  > 🎯 Daily Goal: 2h 5m / 4h 0m (52%)
+  ```
 
-3.  **Take a break** when you need one.
+- **Review today's progress** with the `recent` command:
+  ```bash
+  flow recent
+  > ✨ Today's Completed Sessions ✨
+  >
+  >   - Writing the first draft (2h 5m)
+  >
+  > Total focus time today: 2h 5m
+  ```
 
-    ```bash
-    flow pause
-    ```
+- **Discover your patterns** with `insights`:
+  ```bash
+  flow insights
+  > 📊 Your Focus Insights (based on 42 sessions)
+  > ----------------------------------------------------
+  > Busiest Day:            Thursday
+  >   - You focus an average of 2h 15m on Thursdays.
+  >   - Your average on other days is 1h 10m.
+  >
+  > Top Activities (by time):
+  >   - coding:      18h 5m (51%)
+  >   - writing:     9h 45m (28%)
+  > ----------------------------------------------------
+  ```
 
-    Then, **resume** when you're ready to get back to it.
-
-    ```bash
-    flow resume
-    ```
-
-4.  **End the session** when the work is complete. Your focus time is automatically logged.
-
-    ```bash
-    flow end
-    > ✨ Session complete: Writing the first draft of the new feature spec
-    > Total focus time: 2h 30m
-    ```
-
-5.  **(Optional) Use the Watcher** to get gentle reminders. Run this in a separate, dedicated terminal tab.
-    ```bash
-    flow watch
-    ```
-
-## Gain Insights from Your Work
-
-Once you've logged a few sessions, you can use Flow's data tools to understand your work patterns.
-
-- **Visualize your consistency** with the dashboard. The color of each day represents your total focus time:
-
-  - **Lightest Blue**: 1 minute - 2 hours
-  - **Light Blue**: 2 - 4 hours
-  - **Medium Blue**: 4 - 6 hours
-  - **Darkest Blue**: More than 6 hours
-
+- **Visualize your consistency** with the dashboard:
   ```bash
   flow dashboard
   ```
 
-- **Review your session history**:
-  ```bash
-  flow log --week --stats
-  ```
 - **Export your data for invoicing or analysis**:
   ```bash
-  flow export --month 2023-10 --format csv --output "october-invoice.csv"
+  flow export --month 2023-10 --format csv
   ```
 
 ## Full Command Reference
 
 ### Core Session Commands
 
-| Command                | Description                                    |
-| ---------------------- | ---------------------------------------------- |
-| `start [--tag "name"]` | Begin a deep work session.                     |
-| `status [--raw]`       | Check the current session status.              |
-| `pause`                | Pause the active session.                      |
-| `resume`               | Resume a paused session.                       |
-| `end`                  | Complete the session and log it.               |
-| `watch`                | Run a watcher to get gentle, timely reminders. |
+| Command                     | Description                                    |
+| --------------------------- | ---------------------------------------------- |
+| `start [--tag ""][--target ""]` | Begin a deep work session with an optional target duration. |
+| `status [--raw]`            | Check the current session status.              |
+| `pause`                     | Pause the active session.                      |
+| `resume`                    | Resume a paused session.                       |
+| `end`                       | Complete the session and log it.               |
+| `watch`                     | Run a watcher to get gentle, timely reminders. |
 
 ### Data & Analysis Commands
 
 | Command          | Description                                                             |
 | ---------------- | ----------------------------------------------------------------------- |
 | `log [flags]`    | View completed session history. See `flow log --help` for flags.        |
+| `recent`         | Show a summary of today's completed sessions.                           |
 | `dashboard`      | Show a yearly contribution graph of your focus sessions.                |
+| `insights`       | Analyze your work history to see patterns like your busiest day.        |
 | `export [flags]` | Export session data to CSV or JSON. See `flow export --help` for flags. |
 
 ### Utility Commands
 
-| Command                  | Description                        |
-| ------------------------ | ---------------------------------- |
-| `completion [bash\|zsh]` | Generate shell completion scripts. |
+| Command                  | Description                                            |
+| ------------------------ | ------------------------------------------------------ |
+| `goal [--set ""]`        | Set or view your daily focus goal.                     |
+| `doctor`                 | Run a diagnostic check on your Flow setup.             |
+| `completion [bash\|zsh]` | Generate shell completion scripts.                     |
 
 ## Customization
 

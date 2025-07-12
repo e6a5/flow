@@ -10,11 +10,12 @@ import (
 
 // Session represents a Flow work session
 type Session struct {
-	Tag         string        `json:"tag"`
-	StartTime   time.Time     `json:"start_time"`
-	PausedAt    time.Time     `json:"paused_at,omitempty"`
-	IsPaused    bool          `json:"is_paused"`
-	TotalPaused time.Duration `json:"total_paused"`
+	Tag            string        `json:"tag"`
+	StartTime      time.Time     `json:"start_time"`
+	TargetDuration time.Duration `json:"target_duration,omitempty"`
+	PausedAt       time.Time     `json:"paused_at,omitempty"`
+	IsPaused       bool          `json:"is_paused"`
+	TotalPaused    time.Duration `json:"total_paused"`
 }
 
 // LogEntry represents a completed session for logging

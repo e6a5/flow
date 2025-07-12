@@ -86,8 +86,8 @@ func TestE2EWorkflow(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected 'pause' to succeed, but got error: %v\nStderr: %s", err, stderr)
 	}
-	if !strings.Contains(stdout, "Paused: e2e test") {
-		t.Errorf("Expected pause output to contain 'Paused: e2e test', got:\n%s", stdout)
+	if !strings.Contains(stdout, "Paused session: e2e test") {
+		t.Errorf("Expected pause output to contain 'Paused session: e2e test', got:\n%s", stdout)
 	}
 
 	// 4. Resume the session
