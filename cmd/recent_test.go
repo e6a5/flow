@@ -23,10 +23,10 @@ func TestRecentCmd(t *testing.T) {
 
 		f()
 
-		w.Close()
+		_ = w.Close()
 		os.Stdout = old
 		var buf bytes.Buffer
-		io.Copy(&buf, r)
+		_, _ = io.Copy(&buf, r)
 		return buf.String()
 	}
 
@@ -53,7 +53,9 @@ func TestRecentCmd(t *testing.T) {
 
 	// Manually create log file and write entries
 	for _, entry := range logEntries {
-		core.LogSession(entry)
+		if err := core.LogSession(entry); err != nil {
+			t.Fatalf("failed to log test session: %v", err)
+		}
 	}
 
 	// 3. Test with logs

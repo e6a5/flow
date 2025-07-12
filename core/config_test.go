@@ -18,7 +18,7 @@ func createTestConfigFile(t *testing.T, content string) (string, func()) {
 	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
 		t.Fatalf("Failed to write temp config file: %v", err)
 	}
-	return path, func() { os.Remove(path) }
+	return path, func() { _ = os.Remove(path) }
 }
 
 func TestLoadConfig_Defaults(t *testing.T) {

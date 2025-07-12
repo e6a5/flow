@@ -49,7 +49,10 @@ func handleSetGoal(goalStr string) {
 		}
 		configData = make(map[string]interface{})
 	} else {
-		yaml.Unmarshal(data, &configData)
+		if err := yaml.Unmarshal(data, &configData); err != nil {
+			fmt.Fprintf(os.Stderr, "Error parsing existing config file: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	// Set or update the daily_goal

@@ -49,7 +49,7 @@ The --raw flag can be used to output only the session tag for scripting purposes
 			if session.TargetDuration > 0 {
 				// Adjust for pauses to get accurate end time
 				effectiveEndTime := session.StartTime.Add(session.TargetDuration).Add(session.TotalPaused)
-				remaining := effectiveEndTime.Sub(time.Now())
+				remaining := time.Until(effectiveEndTime)
 
 				// Don't show negative remaining time
 				if remaining < 0 {
