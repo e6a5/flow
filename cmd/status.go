@@ -42,7 +42,17 @@ The --raw flag can be used to output only the session tag for scripting purposes
 		if session.IsPaused {
 			pausedDuration := time.Since(session.PausedAt)
 			fmt.Printf("⏸️  Session paused: %s\n", session.Tag)
-			fmt.Printf("Paused for %s. Use 'flow resume' to continue.\n", core.FormatDuration(pausedDuration))
+
+			// Calculate working time up to when the session was paused
+			workingTime := session.PausedAt.Sub(session.StartTime) - session.TotalPaused
+			if workingTime < 0 {
+				workingTime = 0
+			}
+
+			fmt.Printf("Worked for %s • Paused for %s\n",
+				core.FormatDuration(workingTime),
+				core.FormatDuration(pausedDuration))
+			fmt.Printf("Use 'flow resume' to continue or 'flow stop' to end.\n")
 		} else {
 			duration := time.Since(session.StartTime) - session.TotalPaused
 			baseMsg := fmt.Sprintf("🌊 Deep work: %s (Active for %s)", session.Tag, core.FormatDuration(duration))
