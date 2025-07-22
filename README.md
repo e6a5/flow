@@ -66,64 +66,6 @@ _The installer will add the `flow` binary to `/usr/local/bin` and check for nece
 
 For other installation methods (Go, manual), see the [Installation Guide](docs/INSTALL.md).
 
-## Table of Contents
-
-- [Goals and Insights: Understand Your Work](#goals-and-insights-understand-your-work)
-- [Full Command Reference](#full-command-reference)
-- [Customization](#customization)
-- [Contributing](#contributing)
-
----
-
-## Goals and Insights: Understand Your Work
-
-Flow is more than a timer; it's a tool for building habits. Once you've logged a few sessions, you can use its data tools to understand and improve your work patterns.
-
-- **Set a daily goal** to build consistency:
-  ```bash
-  flow goal --set 4h
-  ```
-  Check your progress at any time:
-  ```bash
-  flow goal
-  > 🎯 Daily Goal: 2h 5m / 4h 0m (52%)
-  ```
-
-- **Review today's progress** with the `recent` command:
-  ```bash
-  flow recent
-  > ✨ Today's Completed Sessions ✨
-  >
-  >   - Writing the first draft (2h 5m)
-  >
-  > Total focus time today: 2h 5m
-  ```
-
-- **Discover your patterns** with `insights`:
-  ```bash
-  flow insights
-  > 📊 Your Focus Insights (based on 42 sessions)
-  > ----------------------------------------------------
-  > Busiest Day:            Thursday
-  >   - You focus an average of 2h 15m on Thursdays.
-  >   - Your average on other days is 1h 10m.
-  >
-  > Top Activities (by time):
-  >   - coding:      18h 5m (51%)
-  >   - writing:     9h 45m (28%)
-  > ----------------------------------------------------
-  ```
-
-- **Visualize your consistency** with the dashboard:
-  ```bash
-  flow dashboard
-  ```
-
-- **Export your data for invoicing or analysis**:
-  ```bash
-  flow export --month 2023-10 --format csv
-  ```
-
 ## Full Command Reference
 
 ### Core Session Commands
