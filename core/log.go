@@ -373,7 +373,7 @@ func HandleLog(showStats, filterToday, filterWeek, filterMonth, showAll bool, mo
 				if filterWeek && !isThisWeek(entry.EndTime, now) {
 					continue
 				}
-				if filterMonth && !(entry.EndTime.Year() == now.Year() && entry.EndTime.Month() == now.Month()) {
+				if filterMonth && (entry.EndTime.Year() != now.Year() || entry.EndTime.Month() != now.Month()) {
 					continue
 				}
 				entries = append(entries, entry)

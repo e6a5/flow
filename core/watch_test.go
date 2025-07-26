@@ -18,7 +18,9 @@ func captureStderr(f func()) string {
 
 	f()
 
-	w.Close()
+	if closeErr := w.Close(); closeErr != nil {
+		panic(fmt.Sprintf("failed to close stderr pipe: %v", closeErr))
+	}
 	var buf bytes.Buffer
 	if _, err := io.Copy(&buf, r); err != nil {
 		// In a test context, if we can't copy the buffer, something is
