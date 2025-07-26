@@ -12,23 +12,17 @@ import (
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Check the current session status",
-	Long: `Provides details about the currently active or paused deep work session.
-Includes the session tag and the elapsed time.
+	Long: `Shows the status of the current deep work session.
+This includes the session tag, how long it has been active, and progress if a target was set.
 The --raw flag can be used to output only the session tag for scripting purposes.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		raw, _ := cmd.Flags().GetBool("raw")
 
-		if raw {
-			if core.SessionExists() {
-				session, err := core.LoadSession()
-				if err == nil {
-					fmt.Print(session.Tag)
-				}
-			}
-			return
-		}
-
 		if !core.SessionExists() {
+			if raw {
+				// Print nothing if no session exists and raw is requested
+				return
+			}
 			fmt.Printf("🌊 No active session.\n")
 			fmt.Printf("Use 'flow start' to begin deep work.\n")
 			return
@@ -40,14 +34,41 @@ The --raw flag can be used to output only the session tag for scripting purposes
 			os.Exit(1)
 		}
 
+		if raw {
+			fmt.Print(session.Tag)
+			return
+		}
+
 		if session.IsPaused {
 			pausedDuration := time.Since(session.PausedAt)
 			fmt.Printf("⏸️  Session paused: %s\n", session.Tag)
-			fmt.Printf("Paused for %s. Use 'flow resume' to continue.\n", core.FormatDuration(pausedDuration))
+
+			// Calculate working time up to when the session was paused
+			workingTime := session.PausedAt.Sub(session.StartTime) - session.TotalPaused
+			if workingTime < 0 {
+				workingTime = 0
+			}
+
+			fmt.Printf("Worked for %s • Paused for %s\n",
+				core.FormatDuration(workingTime),
+				core.FormatDuration(pausedDuration))
+			fmt.Printf("Use 'flow resume' to continue or 'flow stop' to end.\n")
 		} else {
-			activeDuration := time.Since(session.StartTime) - session.TotalPaused
-			fmt.Printf("🌊 Deep work: %s\n", session.Tag)
-			fmt.Printf("Active for %s.\n", core.FormatDuration(activeDuration))
+			duration := time.Since(session.StartTime) - session.TotalPaused
+			baseMsg := fmt.Sprintf("🌊 Deep work: %s (Active for %s)", session.Tag, core.FormatDuration(duration))
+			if session.TargetDuration > 0 {
+				// Adjust for pauses to get accurate end time
+				effectiveEndTime := session.StartTime.Add(session.TargetDuration).Add(session.TotalPaused)
+				remaining := time.Until(effectiveEndTime)
+
+				// Don't show negative remaining time
+				if remaining < 0 {
+					remaining = 0
+				}
+				fmt.Printf("%s / %s (%s remaining)\n", baseMsg, core.FormatDuration(session.TargetDuration), core.FormatDuration(remaining))
+			} else {
+				fmt.Printf("%s\n", baseMsg)
+			}
 		}
 	},
 }

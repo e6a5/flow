@@ -11,7 +11,9 @@ import (
 
 // Config holds all application configuration.
 type Config struct {
-	Watch WatchConfig `yaml:"watch"`
+	Watch      WatchConfig `yaml:"watch"`
+	DailyGoal  string      `yaml:"daily_goal"`
+	parsedGoal time.Duration
 }
 
 // WatchConfig holds configuration specific to the 'watch' command.
@@ -31,11 +33,16 @@ var defaultConfig = Config{
 	},
 }
 
+// ParsedDailyGoal returns the parsed daily goal duration.
+func (c *Config) ParsedDailyGoal() time.Duration {
+	return c.parsedGoal
+}
+
 // LoadConfig loads the configuration from the YAML file, applying defaults.
 func LoadConfig() (Config, error) {
 	cfg := defaultConfig
 
-	configPath, err := getConfigPath()
+	configPath, err := GetConfigPath()
 	if err != nil {
 		return cfg, fmt.Errorf("could not determine config path: %w", err)
 	}
@@ -50,47 +57,54 @@ func LoadConfig() (Config, error) {
 		return cfg, fmt.Errorf("could not read config file: %w", err)
 	}
 
-	// Temporary struct to read user-provided duration strings
-	var userCfg struct {
+	// A temporary struct for all user settings to avoid direct manipulation
+	var tempCfg struct {
 		Watch struct {
 			Interval          string `yaml:"interval"`
 			RemindAfterIdle   string `yaml:"remind_after_idle"`
 			RemindAfterPause  string `yaml:"remind_after_pause"`
 			RemindAfterActive string `yaml:"remind_after_active"`
 		} `yaml:"watch"`
+		DailyGoal string `yaml:"daily_goal"`
 	}
 
-	if err := yaml.Unmarshal(data, &userCfg); err != nil {
+	if err := yaml.Unmarshal(data, &tempCfg); err != nil {
 		return cfg, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
 	// Parse user strings and apply them over defaults
-	if userCfg.Watch.Interval != "" {
-		if d, err := time.ParseDuration(userCfg.Watch.Interval); err == nil {
+	if tempCfg.Watch.Interval != "" {
+		if d, err := time.ParseDuration(tempCfg.Watch.Interval); err == nil {
 			cfg.Watch.Interval = d
 		}
 	}
-	if userCfg.Watch.RemindAfterIdle != "" {
-		if d, err := time.ParseDuration(userCfg.Watch.RemindAfterIdle); err == nil {
+	if tempCfg.Watch.RemindAfterIdle != "" {
+		if d, err := time.ParseDuration(tempCfg.Watch.RemindAfterIdle); err == nil {
 			cfg.Watch.RemindAfterIdle = d
 		}
 	}
-	if userCfg.Watch.RemindAfterPause != "" {
-		if d, err := time.ParseDuration(userCfg.Watch.RemindAfterPause); err == nil {
+	if tempCfg.Watch.RemindAfterPause != "" {
+		if d, err := time.ParseDuration(tempCfg.Watch.RemindAfterPause); err == nil {
 			cfg.Watch.RemindAfterPause = d
 		}
 	}
-	if userCfg.Watch.RemindAfterActive != "" {
-		if d, err := time.ParseDuration(userCfg.Watch.RemindAfterActive); err == nil {
+	if tempCfg.Watch.RemindAfterActive != "" {
+		if d, err := time.ParseDuration(tempCfg.Watch.RemindAfterActive); err == nil {
 			cfg.Watch.RemindAfterActive = d
+		}
+	}
+	if tempCfg.DailyGoal != "" {
+		cfg.DailyGoal = tempCfg.DailyGoal
+		if d, err := time.ParseDuration(tempCfg.DailyGoal); err == nil {
+			cfg.parsedGoal = d
 		}
 	}
 
 	return cfg, nil
 }
 
-// getConfigPath determines the expected path for the configuration file.
-func getConfigPath() (string, error) {
+// GetConfigPath determines the expected path for the configuration file.
+func GetConfigPath() (string, error) {
 	configHome := os.Getenv("XDG_CONFIG_HOME")
 	if configHome == "" {
 		home, err := os.UserHomeDir()
