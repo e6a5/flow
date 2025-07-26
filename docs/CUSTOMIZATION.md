@@ -61,11 +61,11 @@ You can customize the file paths Flow uses for storing its data by setting the f
 
 You can set these variables in your shell's configuration file (e.g., `~/.bashrc`, `~/.zshrc`) to make them permanent.
 
-## Watcher Configuration
+## Configuration File
 
-The `flow watch` command can be customized to adjust the timing of its reminders. This is done via a configuration file located at `~/.config/flow/config.yml`.
+Flow can be customized via a configuration file located at `~/.config/flow/config.yml`.
 
-If the file does not exist, Flow will use the default timings. To customize them, create the `config.yml` file:
+If the file does not exist, Flow will use the default settings. To customize them, create the `config.yml` file:
 
 ```bash
 mkdir -p ~/.config/flow
@@ -76,27 +76,10 @@ _If you have `$XDG_CONFIG_HOME` set, the path will be `$XDG_CONFIG_HOME/flow/con
 
 ### Available Options
 
-You can specify the following durations in the YAML file. The values should be strings that can be parsed as a duration (e.g., "5m", "1h", "30s").
-
-Here is a full example showing all available settings:
+You can specify the following settings in the YAML file:
 
 ```yaml
 # ~/.config/flow/config.yml
-watch:
-  # How often the watcher checks your session status.
-  interval: "1m"
-
-  # After 30 minutes of inactivity, suggest starting a session.
-  remind_after_idle: "30m"
-
-  # After a session has been paused for 10 minutes, suggest resuming.
-  remind_after_pause: "10m"
-
-  # After a session has been active for 90 minutes, suggest taking a break.
-  remind_after_active: "1h30m"
-
-# Set your daily focus goal (optional)
-daily_goal: "4h"
 
 # How long a session can run before being considered stale and auto-cleaned up
 # Default: "8h" (8 hours)

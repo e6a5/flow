@@ -109,7 +109,6 @@ For other installation methods (Go, manual), see the [Installation Guide](docs/I
 | `resume`                    | Resume a paused session.                       |
 | `end`                       | Complete the session and log it.               |
 | `delete`                    | Interactively delete a session from your log.  |
-| `watch`                     | Run a watcher to get gentle, timely reminders. |
 
 > **💡 Tip**: After ending a session, if you made a mistake, you can immediately run `flow delete` to remove it!
 
@@ -129,8 +128,6 @@ For other installation methods (Go, manual), see the [Installation Guide](docs/I
 
 | Command                  | Description                                            |
 | ------------------------ | ------------------------------------------------------ |
-| `goal [--set ""]`        | Set or view your daily focus goal.                     |
-| `doctor`                 | Run a diagnostic check on your Flow setup.             |
 | `completion [bash\|zsh]` | Generate shell completion scripts.                     |
 
 ## Customization
@@ -138,7 +135,6 @@ For other installation methods (Go, manual), see the [Installation Guide](docs/I
 You can extend Flow to fit your unique workflow using hooks and environment variables.
 
 - **Automation Hooks**: Trigger custom scripts on session events.
-- **Watcher Timings**: Customize reminder intervals for the `watch` command.
 - **Configuration**: Customize storage paths using environment variables.
 
 For detailed information, see the [Customization Guide](docs/CUSTOMIZATION.md).
