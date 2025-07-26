@@ -25,6 +25,30 @@ Flow is built on a few core principles that guide its design and purpose.
 
 ---
 
+## Quick Start
+
+1. **Install Flow**:
+   ```bash
+   curl -sSL https://raw.githubusercontent.com/e6a5/flow/main/install.sh | bash
+   ```
+
+2. **Start your first session**:
+   ```bash
+   flow start --tag "My first deep work session"
+   ```
+
+3. **Check your progress**:
+   ```bash
+   flow status
+   ```
+
+4. **End when complete**:
+   ```bash
+   flow end
+   ```
+
+---
+
 ## A Typical Workflow
 
 Flow is designed to be intuitive. Here's how a typical session works:
@@ -49,11 +73,18 @@ Flow is designed to be intuitive. Here's how a typical session works:
     > ✨ Session complete: Writing the first draft
     > Total focus time: 2h 5m
     ```
+
 4. **Review your day** and find your patterns.
-    ```bash
-    flow recent
-    flow insights
-    ```
+   ```bash
+   flow recent
+   flow insights
+   ```
+
+5. **Clean up if needed** - Remove any test sessions or mistakes.
+   ```bash
+   flow delete
+   ```
+
 ---
 
 ## Installation
@@ -77,7 +108,10 @@ For other installation methods (Go, manual), see the [Installation Guide](docs/I
 | `pause`                     | Pause the active session.                      |
 | `resume`                    | Resume a paused session.                       |
 | `end`                       | Complete the session and log it.               |
+| `delete`                    | Interactively delete a session from your log.  |
 | `watch`                     | Run a watcher to get gentle, timely reminders. |
+
+> **💡 Tip**: After ending a session, if you made a mistake, you can immediately run `flow delete` to remove it!
 
 ### Data & Analysis Commands
 

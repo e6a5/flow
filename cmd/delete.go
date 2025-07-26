@@ -14,7 +14,13 @@ import (
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Deletes a session",
-	Long:  `Deletes a session from the log.`,
+	Long: `Deletes a session from the log.
+
+This command interactively lists your recent sessions and allows you to select one to delete.
+You will be asked to confirm before the session is permanently removed.
+
+Example:
+  flow delete`,
 	Run: func(cmd *cobra.Command, args []string) {
 		sessions, err := core.GetRecentSessions(10)
 		if err != nil {
