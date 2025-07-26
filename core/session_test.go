@@ -492,3 +492,58 @@ func TestLogSession(t *testing.T) {
 		t.Error("Expected non-empty log file, got empty")
 	}
 }
+
+func TestIsSessionStale(t *testing.T) {
+	now := time.Now()
+	threshold := 8 * time.Hour
+
+	tests := []struct {
+		name     string
+		session  Session
+		expected bool
+	}{
+		{
+			name: "fresh active session",
+			session: Session{
+				StartTime: now.Add(-1 * time.Hour),
+				IsPaused:  false,
+			},
+			expected: false,
+		},
+		{
+			name: "stale active session",
+			session: Session{
+				StartTime: now.Add(-9 * time.Hour),
+				IsPaused:  false,
+			},
+			expected: true,
+		},
+		{
+			name: "fresh paused session",
+			session: Session{
+				StartTime: now.Add(-2 * time.Hour),
+				PausedAt:  now.Add(-1 * time.Hour),
+				IsPaused:  true,
+			},
+			expected: false,
+		},
+		{
+			name: "stale paused session",
+			session: Session{
+				StartTime: now.Add(-2 * time.Hour),
+				PausedAt:  now.Add(-9 * time.Hour),
+				IsPaused:  true,
+			},
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsSessionStale(tt.session, threshold)
+			if result != tt.expected {
+				t.Errorf("IsSessionStale() = %v, want %v", result, tt.expected)
+			}
+		})
+	}
+}

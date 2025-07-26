@@ -28,6 +28,13 @@ The --raw flag can be used to output only the session tag for scripting purposes
 			return
 		}
 
+		// Load configuration
+		config, err := core.LoadConfig()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading configuration: %v\n", err)
+			os.Exit(1)
+		}
+
 		session, err := core.LoadSession()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error reading session: %v\n", err)
@@ -37,6 +44,20 @@ The --raw flag can be used to output only the session tag for scripting purposes
 		if raw {
 			fmt.Print(session.Tag)
 			return
+		}
+
+		// Check if session is stale and warn the user
+		if core.IsSessionStale(session, config.ParsedStaleSessionThreshold()) {
+			duration := time.Since(session.StartTime) - session.TotalPaused
+			if session.IsPaused {
+				duration = session.PausedAt.Sub(session.StartTime) - session.TotalPaused
+			}
+
+			thresholdStr := core.FormatDuration(config.ParsedStaleSessionThreshold())
+			fmt.Printf("⚠️  WARNING: This session has been running for over %s!\n", thresholdStr)
+			fmt.Printf("   Duration: %s\n", core.FormatDuration(duration))
+			fmt.Printf("   You likely forgot to end the previous session.\n")
+			fmt.Printf("   Run 'flow start' to automatically clean up and start fresh.\n\n")
 		}
 
 		if session.IsPaused {
@@ -52,7 +73,7 @@ The --raw flag can be used to output only the session tag for scripting purposes
 			fmt.Printf("Worked for %s • Paused for %s\n",
 				core.FormatDuration(workingTime),
 				core.FormatDuration(pausedDuration))
-			fmt.Printf("Use 'flow resume' to continue or 'flow stop' to end.\n")
+			fmt.Printf("Use 'flow resume' to continue or 'flow end' to finish.\n")
 		} else {
 			duration := time.Since(session.StartTime) - session.TotalPaused
 			baseMsg := fmt.Sprintf("🌊 Deep work: %s (Active for %s)", session.Tag, core.FormatDuration(duration))

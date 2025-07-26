@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6] - 2025-07-26
+
+### Added
+
+- **Stale Session Cleanup**: Automatic detection and cleanup of sessions running longer than a configurable threshold (default: 8 hours). Prevents forgotten sessions from accumulating hundreds of hours.
+- **Configurable Stale Session Threshold**: Set custom threshold via `~/.config/flow/config.yml` with `stale_session_threshold` setting.
+
+### Removed
+
+- **Watch Command**: Removed `flow watch` command and associated watcher functionality.
+- **Doctor Command**: Removed `flow doctor` diagnostic command.
+- **Goal Command**: Removed `flow goal` daily goal tracking command.
+
+### Changed
+
+- **Simplified Configuration**: Removed watch and goal-related configuration options. Old config files are gracefully ignored.
+- **Enhanced Start Command**: Now automatically cleans up stale sessions before starting new ones.
+- **Enhanced Status Command**: Warns about stale sessions using the configurable threshold.
+- **Code Reduction**: Removed 577 lines of code while adding 251 lines, for a net reduction of 326 lines.
+
+### Fixed
+
+- **Linting Issues**: Fixed all `errcheck` issues in configuration tests.
+- **Test Isolation**: Improved test isolation to prevent interference between configuration tests.
+
 ## [1.1.5] - 2025-07-26
 
 ### Added
