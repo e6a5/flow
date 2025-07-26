@@ -18,10 +18,41 @@ A session is a single, uninterrupted period of focus.
 You can add a descriptive tag to your session to remember what you worked on.
 If a session is already active, 'start' will show you the status instead.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// Load configuration
+		config, err := core.LoadConfig()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading configuration: %v\n", err)
+			os.Exit(1)
+		}
+
 		// Check if session already exists
 		if core.SessionExists() {
 			session, err := core.LoadSession()
-			if err == nil {
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error reading existing session: %v\n", err)
+				os.Exit(1)
+			}
+
+			// Check if the session is stale (running for too long)
+			if core.IsSessionStale(session, config.ParsedStaleSessionThreshold()) {
+				duration := time.Since(session.StartTime) - session.TotalPaused
+				if session.IsPaused {
+					duration = session.PausedAt.Sub(session.StartTime) - session.TotalPaused
+				}
+
+				// Automatically clean up the stale session
+				if err := core.CleanupStaleSession(session, true); err != nil {
+					fmt.Fprintf(os.Stderr, "Error cleaning up stale session: %v\n", err)
+					os.Exit(1)
+				}
+
+				thresholdStr := core.FormatDuration(config.ParsedStaleSessionThreshold())
+				fmt.Printf("⚠️  Found and cleaned up a stale session: %s\n", session.Tag)
+				fmt.Printf("   Duration: %s (logged as abandoned)\n", core.FormatDuration(duration))
+				fmt.Printf("   Threshold: %s\n", thresholdStr)
+				fmt.Printf("   Starting fresh session...\n\n")
+			} else {
+				// Normal existing session (not stale)
 				if session.IsPaused {
 					fmt.Printf("🌊 You have a paused session: %s\n", session.Tag)
 					fmt.Printf("Use 'flow resume' to continue or 'flow end' to finish.\n")

@@ -113,6 +113,8 @@ For other installation methods (Go, manual), see the [Installation Guide](docs/I
 
 > **💡 Tip**: After ending a session, if you made a mistake, you can immediately run `flow delete` to remove it!
 
+> **🛡️ Stale Session Protection**: If you forget to end a session and it runs for over 8 hours (configurable), Flow will automatically detect and clean it up when you start a new session. The abandoned session will be logged with an [ABANDONED] tag for your records.
+
 ### Data & Analysis Commands
 
 | Command          | Description                                                             |

@@ -94,4 +94,27 @@ watch:
 
   # After a session has been active for 90 minutes, suggest taking a break.
   remind_after_active: "1h30m"
+
+# Set your daily focus goal (optional)
+daily_goal: "4h"
+
+# How long a session can run before being considered stale and auto-cleaned up
+# Default: "8h" (8 hours)
+stale_session_threshold: "6h"
 ```
+
+### Stale Session Threshold
+
+The `stale_session_threshold` setting controls how long a session can run before Flow considers it "stale" and automatically cleans it up when you start a new session. This is useful for preventing sessions that accumulate hundreds of hours when you forget to end them.
+
+- **Default:** `"8h"` (8 hours)
+- **Example values:** `"4h"`, `"6h"`, `"12h"`, `"24h"`
+- **Format:** Any valid Go duration string (e.g., "30m", "2h30m", "1d")
+
+When a session exceeds this threshold, Flow will:
+1. Automatically detect it as stale when you run `flow start`
+2. Log it as abandoned with an `[ABANDONED]` tag
+3. Clean up the session file
+4. Allow you to start a fresh session
+
+This prevents the common problem of forgetting to end a session and ending up with inaccurate time tracking data.

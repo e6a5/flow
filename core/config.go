@@ -11,9 +11,11 @@ import (
 
 // Config holds all application configuration.
 type Config struct {
-	Watch      WatchConfig `yaml:"watch"`
-	DailyGoal  string      `yaml:"daily_goal"`
-	parsedGoal time.Duration
+	Watch                 WatchConfig `yaml:"watch"`
+	DailyGoal             string      `yaml:"daily_goal"`
+	StaleSessionThreshold string      `yaml:"stale_session_threshold"`
+	parsedGoal            time.Duration
+	parsedStaleThreshold  time.Duration
 }
 
 // WatchConfig holds configuration specific to the 'watch' command.
@@ -31,11 +33,18 @@ var defaultConfig = Config{
 		RemindAfterPause:  5 * time.Minute,
 		RemindAfterActive: 2 * time.Hour,
 	},
+	StaleSessionThreshold: "8h", // Default to 8 hours
+	parsedStaleThreshold:  8 * time.Hour,
 }
 
 // ParsedDailyGoal returns the parsed daily goal duration.
 func (c *Config) ParsedDailyGoal() time.Duration {
 	return c.parsedGoal
+}
+
+// ParsedStaleSessionThreshold returns the parsed stale session threshold duration.
+func (c *Config) ParsedStaleSessionThreshold() time.Duration {
+	return c.parsedStaleThreshold
 }
 
 // LoadConfig loads the configuration from the YAML file, applying defaults.
@@ -65,7 +74,8 @@ func LoadConfig() (Config, error) {
 			RemindAfterPause  string `yaml:"remind_after_pause"`
 			RemindAfterActive string `yaml:"remind_after_active"`
 		} `yaml:"watch"`
-		DailyGoal string `yaml:"daily_goal"`
+		DailyGoal             string `yaml:"daily_goal"`
+		StaleSessionThreshold string `yaml:"stale_session_threshold"`
 	}
 
 	if err := yaml.Unmarshal(data, &tempCfg); err != nil {
@@ -97,6 +107,12 @@ func LoadConfig() (Config, error) {
 		cfg.DailyGoal = tempCfg.DailyGoal
 		if d, err := time.ParseDuration(tempCfg.DailyGoal); err == nil {
 			cfg.parsedGoal = d
+		}
+	}
+	if tempCfg.StaleSessionThreshold != "" {
+		cfg.StaleSessionThreshold = tempCfg.StaleSessionThreshold
+		if d, err := time.ParseDuration(tempCfg.StaleSessionThreshold); err == nil {
+			cfg.parsedStaleThreshold = d
 		}
 	}
 

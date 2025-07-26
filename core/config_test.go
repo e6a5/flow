@@ -147,3 +147,80 @@ func TestLoadConfig_MalformedYAML(t *testing.T) {
 		t.Fatalf("LoadConfig() should have failed for malformed YAML, but didn't")
 	}
 }
+
+func TestStaleSessionThresholdConfig(t *testing.T) {
+	// Temporarily move the real config file if it exists
+	realConfigPath := ""
+	if xdgConfigHome := os.Getenv("XDG_CONFIG_HOME"); xdgConfigHome != "" {
+		realConfigPath = filepath.Join(xdgConfigHome, "flow", "config.yml")
+	} else {
+		homeDir, err := os.UserHomeDir()
+		if err == nil {
+			realConfigPath = filepath.Join(homeDir, ".config", "flow", "config.yml")
+		}
+	}
+
+	// Move the real config file temporarily if it exists
+	if realConfigPath != "" {
+		if _, err := os.Stat(realConfigPath); err == nil {
+			tempBackup := realConfigPath + ".testbackup"
+			if err := os.Rename(realConfigPath, tempBackup); err == nil {
+				defer func() {
+					if restoreErr := os.Rename(tempBackup, realConfigPath); restoreErr != nil {
+						t.Logf("Failed to restore config file: %v", restoreErr)
+					}
+				}()
+			}
+		}
+	}
+
+	// Clear any existing XDG_CONFIG_HOME to ensure we get defaults
+	originalXDG := os.Getenv("XDG_CONFIG_HOME")
+	if err := os.Unsetenv("XDG_CONFIG_HOME"); err != nil {
+		t.Logf("Failed to unset XDG_CONFIG_HOME: %v", err)
+	}
+	defer func() {
+		if err := os.Setenv("XDG_CONFIG_HOME", originalXDG); err != nil {
+			t.Logf("Failed to restore XDG_CONFIG_HOME: %v", err)
+		}
+	}()
+
+	// Test default value
+	config, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("Failed to load default config: %v", err)
+	}
+
+	expected := 8 * time.Hour
+	if config.ParsedStaleSessionThreshold() != expected {
+		t.Errorf("Expected default stale session threshold to be %v, got %v", expected, config.ParsedStaleSessionThreshold())
+	}
+
+	// Test custom value
+	tempDir := t.TempDir()
+	flowConfigDir := filepath.Join(tempDir, "flow")
+	if err := os.MkdirAll(flowConfigDir, 0755); err != nil {
+		t.Fatalf("Failed to create config directory: %v", err)
+	}
+
+	configPath := filepath.Join(flowConfigDir, "config.yml")
+	configData := `stale_session_threshold: "6h"`
+	if err := os.WriteFile(configPath, []byte(configData), 0644); err != nil {
+		t.Fatalf("Failed to write test config: %v", err)
+	}
+
+	// Temporarily override XDG_CONFIG_HOME
+	if err := os.Setenv("XDG_CONFIG_HOME", tempDir); err != nil {
+		t.Fatalf("Failed to set XDG_CONFIG_HOME: %v", err)
+	}
+
+	config, err = LoadConfig()
+	if err != nil {
+		t.Fatalf("Failed to load custom config: %v", err)
+	}
+
+	expected = 6 * time.Hour
+	if config.ParsedStaleSessionThreshold() != expected {
+		t.Errorf("Expected custom stale session threshold to be %v, got %v", expected, config.ParsedStaleSessionThreshold())
+	}
+}

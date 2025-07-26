@@ -177,3 +177,49 @@ func ensureDir(path string) error {
 	}
 	return nil
 }
+
+// IsSessionStale checks if a session has been running for an unreasonable amount of time
+func IsSessionStale(session Session, threshold time.Duration) bool {
+	if session.IsPaused {
+		// For paused sessions, check if they've been paused for too long
+		return time.Since(session.PausedAt) > threshold
+	}
+	// For active sessions, check total running time
+	return time.Since(session.StartTime) > threshold
+}
+
+// CleanupStaleSession removes a stale session file and optionally logs it as abandoned
+func CleanupStaleSession(session Session, logAsAbandoned bool) error {
+	if logAsAbandoned {
+		// Log the session as abandoned with a special tag
+		endTime := time.Now()
+		if session.IsPaused {
+			endTime = session.PausedAt
+		}
+
+		totalDuration := endTime.Sub(session.StartTime) - session.TotalPaused
+		if totalDuration < 0 {
+			totalDuration = 0 // Ensure non-negative duration
+		}
+
+		logEntry := LogEntry{
+			Tag:         session.Tag + " [ABANDONED]",
+			StartTime:   session.StartTime,
+			EndTime:     endTime,
+			Duration:    totalDuration,
+			TotalPaused: session.TotalPaused,
+		}
+
+		if err := LogSession(logEntry); err != nil {
+			return fmt.Errorf("failed to log abandoned session: %w", err)
+		}
+	}
+
+	// Remove the session file
+	sessionPath, err := GetSessionPath()
+	if err != nil {
+		return fmt.Errorf("failed to get session path: %w", err)
+	}
+
+	return os.Remove(sessionPath)
+}
