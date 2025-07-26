@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -16,8 +17,10 @@ func captureStderr(f func()) string {
 	os.Stderr = w
 
 	f()
-	_ = w.Close()
 
+	if closeErr := w.Close(); closeErr != nil {
+		panic(fmt.Sprintf("failed to close stderr pipe: %v", closeErr))
+	}
 	var buf bytes.Buffer
 	_, _ = io.Copy(&buf, r)
 	os.Stderr = oldStderr
