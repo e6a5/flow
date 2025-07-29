@@ -7,8 +7,6 @@
 
 **In a world of constant distraction, your attention is a superpower. Flow is a minimalist command-line tool that helps you protect it. It's for developers, writers, and anyone who wants to build a deep work habit without leaving the terminal.**
 
-![Flow Dashboard](assets/dashboard.png)
-
 ---
 
 ## The Flow Philosophy
